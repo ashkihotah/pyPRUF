@@ -117,9 +117,7 @@ def union(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, or_fun: FuzzyOr) -> Di
     new_set = set1.to_dictionary()
     for element, membership2 in set2.to_dictionary().items():
         membership1 = set1.membership_degree(element)
-        new_membership = or_fun(membership1, membership2)
-        if new_membership > 0:
-            new_set[element] = new_membership
+        new_set[element] = or_fun(membership1, membership2)
     fs = DiscreteFuzzySet(set1.name + ' ∪ ' + set2.name, set1.get_schema(), new_set)
     return fs
 
