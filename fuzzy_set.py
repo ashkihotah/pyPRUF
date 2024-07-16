@@ -1,7 +1,6 @@
 from fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr
 
 class DiscreteFuzzySet:
-# git commit -m "DiscreteFuzzySet class created along some sets operators and PRUF specific operators"
     def __init__(self, name: str, schema: tuple, dict_relation: dict):
         # if dict_relation != None:
         #     keys = list(dict_relation.keys())
