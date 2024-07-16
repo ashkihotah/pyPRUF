@@ -1,50 +1,28 @@
-from enum import Enum
+from enum import Enum, member
 
-class AND_FUNCTIONS(Enum):
-    MIN = 0
+class FuzzyAnd(Enum):
+    MIN = min
 
-class OR_FUNCTIONS(Enum):
-    MAX = 0
+    def __call__(self, a: float, b: float) -> float:
+        assert isinstance(a, float) and isinstance(b, float), "'a' and 'b' values must be floats!"
+        assert 0.0 <= a and a <= 1.0 and 0.0 <= b and b <= 1.0, "'a' and 'b' must be between [0, 1]!"
+        return self.value(a, b)
 
-class NOT_FUNCTIONS(Enum):
-    STANDARD = 0
+class FuzzyOr(Enum):
+    MAX = max
 
-def standard_not(value: float) -> float:
-    return 1 - value
+    def __call__(self, a: float, b: float) -> float:
+        assert isinstance(a, float) and isinstance(b, float), "'a' and 'b' values must be floats!"
+        assert 0.0 <= a and a <= 1.0 and 0.0 <= b and b <= 1.0, "'a' and 'b' must be between [0, 1]!"
+        return self.value(a, b)
 
-class FuzzyLogic:
-
-    __and_functions = [min]
-    __or_functions = [max]
-    __not_functions = [standard_not]
-
-    __and: AND_FUNCTIONS = AND_FUNCTIONS.MIN
-    __or: OR_FUNCTIONS = OR_FUNCTIONS.MAX
-    __not: NOT_FUNCTIONS = NOT_FUNCTIONS.STANDARD
-
-    @staticmethod
-    def conjunction(a: float, b: float) -> float:
-        return FuzzyLogic.__and_functions[FuzzyLogic.__and.value](a, b)
-
-    @staticmethod
-    def disjunction(a: float, b: float) -> float:
-        return FuzzyLogic.__or_functions[FuzzyLogic.__or.value](a, b)
+class FuzzyNot(Enum):
     
-    @staticmethod
-    def negation(a: float) -> float:
-        return FuzzyLogic.__not_functions[FuzzyLogic.__not.value](a)
-    
-    @staticmethod
-    def set_and_function(function: AND_FUNCTIONS) -> None:
-        assert isinstance(function, AND_FUNCTIONS), 'The parameter function must be of type AND_FUNCTIONS'
-        FuzzyLogic.__and = function
-    
-    @staticmethod
-    def set_or_function(function: OR_FUNCTIONS) -> None:
-        assert isinstance(function, OR_FUNCTIONS), 'The parameter function must be of type OR_FUNCTIONS'
-        FuzzyLogic.__or = function
+    @member
+    def STANDARD(value: float) -> float:
+        return 1 - value
 
-    @staticmethod
-    def set_not_function(function: NOT_FUNCTIONS) -> None:
-        assert isinstance(function, NOT_FUNCTIONS), 'The parameter function must be of type NOT_FUNCTIONS'
-        FuzzyLogic.__not = function
+    def __call__(self, a: float) -> float:
+        assert isinstance(a, float), "'a' value must be float!"
+        assert 0.0 <= a and a <= 1.0, "'a' must be between [0, 1]!"
+        return self.value(a)
