@@ -1,3 +1,4 @@
+import time
 from fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr
 
 class DiscreteFuzzySet:
@@ -31,9 +32,14 @@ class DiscreteFuzzySet:
         #         keys.remove('mu')
         #     self.__schema = tuple(keys)
         # else:
-        assert isinstance(schema, tuple) and len(schema) > 0, "'schema' must be a non-empty tuple of strings representing the variables names!"
+        assert (isinstance(schema, list) or isinstance(schema, tuple)) and len(schema) > 0, "'schema' must be a non-empty list or tuple of strings representing the variables names!"
         assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary!"
         length = len(schema)
+        sorted_schema = list(schema)
+        sorted_schema.sort()
+        for i in range(1, len(sorted_schema)):
+            assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
+
         
         self.__fuzzy_set = {}
         for element, mu in dict_relation.items():
@@ -42,12 +48,20 @@ class DiscreteFuzzySet:
             self.__fuzzy_set[tuple(element)] = mu
 
         self.name = name
-        self.__schema = schema
+        self.__schema = list(schema)
 
-    def membership_degree(self, element) -> float:
+    def __getitem__(self, element) -> float:
         if element in self.__fuzzy_set.keys():
             return self.__fuzzy_set[element]
         return 0.0
+    
+    def __setitem__(self, element, membership: float) -> None:
+        assert isinstance(membership, float), "'membership' must be a float!"
+        assert 0 <= membership and membership <= 1, "'membership' must be between 0 and 1 inclusive!"
+        assert isinstance(element, tuple), "'element' must be a tuple! "
+        assert len(self.__schema) == len(element), "'element' must be a tuple of the same length of the schema!"
+
+        self.__fuzzy_set[element] = membership
 
     def get_cardinality(self) -> float:
         memberships_sum = 0.0
@@ -62,14 +76,6 @@ class DiscreteFuzzySet:
             memberships_sum += value
             n += 1
         return memberships_sum / n
-
-    def add_element(self, element, membership: float) -> None:
-        assert isinstance(membership, float), "'membership' must be a float!"
-        assert 0 <= membership and membership <= 1, "'membership' must be between 0 and 1 inclusive!"
-        assert isinstance(element, tuple), "'element' must be a tuple! "
-        assert len(self.__schema) == len(element), "'element' must be a tuple of the same length of the schema!"
-
-        self.__fuzzy_set[element] = membership
 
     def to_dictionary(self) -> dict:
         return self.__fuzzy_set.copy()
@@ -89,8 +95,16 @@ class DiscreteFuzzySet:
     def __repr__(self) -> str:
         return self.name
 
-    def get_schema(self) -> list:
-        return self.__schema
+    def get_schema(self) -> tuple:
+        return tuple(self.__schema)
+
+    def rename_schema(self, ren_dict: dict) -> None:
+        assert isinstance(ren_dict, dict), "'dict_relation' must be a dictionary!"
+        for key, value in ren_dict.items():
+            assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
+            assert key in self.__schema, key + " not in " + self.name + " schema!"
+            assert value not in self.__schema, value + " already in " + self.name + " schema!"
+            self.__schema[self.__schema.index(key)] = value
 
 def proportion(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet) -> float:
     assert isinstance(set1, DiscreteFuzzySet) and isinstance(set2, DiscreteFuzzySet), "'set1' and 'set2' must be both of type 'DiscreteFuzzySet'!"
@@ -99,7 +113,9 @@ def proportion(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet) -> float:
 
 def cartesian_product(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyAnd) -> DiscreteFuzzySet:
     assert isinstance(set1, DiscreteFuzzySet) and isinstance(set2, DiscreteFuzzySet), "'set1' and 'set2' must be both of type 'DiscreteFuzzySet'!"
-    assert set1.get_schema() != set2.get_schema(), "'set1' and 'set2' must have different schemas!"
+    set1_schema = set1.get_schema()
+    for var in set2.get_schema():
+        assert var not in set1_schema, "'" + var + "' is in " + set1.name + " schema: " + str(set1_schema) + "\n'set1' and 'set2' must have different schemas!"
     assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
 
     new_set = {}
@@ -116,7 +132,7 @@ def union(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, or_fun: FuzzyOr) -> Di
 
     new_set = set1.to_dictionary()
     for element, membership2 in set2.to_dictionary().items():
-        membership1 = set1.membership_degree(element)
+        membership1 = set1[element]
         new_set[element] = or_fun(membership1, membership2)
     fs = DiscreteFuzzySet(set1.name + ' ∪ ' + set2.name, set1.get_schema(), new_set)
     return fs
@@ -131,7 +147,7 @@ def intersection(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyA
     set2_items = set2.to_dictionary().items()
     for value, membership2 in set2_items:
         if value in set1_keys:
-            membership1 = set1.membership_degree(value)
+            membership1 = set1[value]
             new_membership = and_fun(membership1, membership2)
             if new_membership > 0: # scelta progettuale: gli elementi con mu == 0 li mantieni oppure no? -> scelgo no
                 new_set[value] = new_membership
@@ -228,15 +244,72 @@ def particularization(fuzzy_set: DiscreteFuzzySet, assignment: dict, and_fun: Fu
                 membership = 0
                 break
         for index in fs_indexes:
-            membership = and_fun(assignment[schema[index]].membership_degree((element[index],)), membership)
+            membership = and_fun(assignment[schema[index]][(element[index],)], membership)
         if membership > 0:
             new_set[element] = membership
 
     fs = DiscreteFuzzySet(fuzzy_set.name + str(assignment), schema, new_set)
     return fs
 
+def natural_join(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyAnd) -> DiscreteFuzzySet:
+    assert isinstance(set1, DiscreteFuzzySet) and isinstance(set2, DiscreteFuzzySet), "'set1' and 'set2' must be both of type 'DiscreteFuzzySet'!"
+    assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
+
+    schema1 = set1.get_schema()
+    schema2 = list(set2.get_schema())
+    indexes = []
+    for index, var in enumerate(schema1):
+        if var in schema2:
+            indexes.append(index)
+            schema2.remove(var)
+
+    assert len(indexes) > 0, "'set1' and 'set2' must have at least one variable in common int their schema!"
+    new_set = {}
+    for element1, membership1 in set1.to_dictionary().items():
+        for element2, membership2 in set2.to_dictionary().items():
+            to_insert = True
+            for index in indexes:
+                if element1[index] != element2[index]:
+                    to_insert = False
+                    break
+            new_elem = list(element1)
+            if to_insert:
+                for index, var in enumerate(element2):
+                    if index not in indexes:
+                        new_elem.append(var)
+                new_set[tuple(new_elem)] = and_fun(membership1, membership2)
+    return DiscreteFuzzySet(set1.name + ' ⋈ ' + set2.name, schema1 + tuple(schema2), new_set)
+
+
+def compatibility(fuzzy_set: DiscreteFuzzySet, reference_set: DiscreteFuzzySet) -> DiscreteFuzzySet:
+    assert isinstance(fuzzy_set, DiscreteFuzzySet) and isinstance(reference_set, DiscreteFuzzySet), "'fuzzy_set' and 'reference_set' must be both of type 'DiscreteFuzzySet'!"
+    assert fuzzy_set.get_schema() == reference_set.get_schema(), "'fuzzy_set' and 'reference_set' must have the same schema!"
+
+    new_set = {}
+    for element, membership in reference_set.to_dictionary().items():
+        key = (reference_set[element], )
+        if key in new_set.keys():
+            new_set[key] = max(fuzzy_set[element], new_set[key])
+        else:
+            new_set[key] = fuzzy_set[element]
+        
+    return DiscreteFuzzySet('Comp(' + str(fuzzy_set) + ', ' + str(reference_set) + ')', fuzzy_set.get_schema(), new_set)
+
+def consistency(fuzzy_set: DiscreteFuzzySet, reference_set: DiscreteFuzzySet, and_fun: FuzzyAnd) -> float:
+    assert isinstance(fuzzy_set, DiscreteFuzzySet) and isinstance(reference_set, DiscreteFuzzySet), "'fuzzy_set' and 'reference_set' must be both of type 'DiscreteFuzzySet'!"
+    assert fuzzy_set.get_schema() == reference_set.get_schema(), "'fuzzy_set' and 'reference_set' must have the same schema!"
+    assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
+
+    consistency = -1
+    for element, mu1 in reference_set.to_dictionary().items():
+        consistency = max(and_fun(mu1, fuzzy_set[element]), consistency)
+
+    return consistency
+
 # Example usage:
 if __name__ == "__main__":
+    start_time = time.time()
+
     # fs1 = DiscreteFuzzySet('A', {'V1': [1, 'val1', 2], 'V2': ['val2', 3.4, 'val2'], 'mu': [0.3, 0.6, 0.9]})
     # fs2 = DiscreteFuzzySet('B', {'V1': [2, 'val3', 'val1'], 'V2': ['val4', 4.4, 3.4], 'mu': [0.1, 0.5, 0.7]})
     # fs3 = DiscreteFuzzySet('C', {'X1': [2, 'val3'], 'mu': [0.1, 0.5]})
@@ -244,15 +317,25 @@ if __name__ == "__main__":
     fs1 = DiscreteFuzzySet('A', ('V1', 'V2'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
     fs2 = DiscreteFuzzySet('B', ('V1', 'V2'), {(2, 'val4'): 0.1, ('val3', 4.4): 0.5, ('val1', 3.4): 0.7})
     fs3 = DiscreteFuzzySet('C', ('V1', ), {(2,): 0.1, ('val3',): 0.5})
+    fs4 = DiscreteFuzzySet('NOT(SMALL_INTEGER)', ('n', ), {(0, ): .0, (1, ): .0, (2, ): 0.2, (3, ): 0.4, (4, ): 0.6, (5, ): 0.8})
+    not_fs4 = complement(fs4, FuzzyNot.STANDARD)
+    fs5 = DiscreteFuzzySet('D', ('V1', 'V3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
+    fs6 = DiscreteFuzzySet('D', ('V6', 'V3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
 
+    print(fs1[(1, 'val2')])
+    fs1[(1, 'val2')] = 0.7
+    print(fs1[(1, 'val2')])
     print(fs1.get_string_repr())
     print(fs2.get_string_repr())
     print(fs3.get_string_repr())
+    print(fs4.get_string_repr())
+    print(not_fs4.get_string_repr())
+    print(fs5.get_string_repr())
 
     union_set = union(fs1, fs2, FuzzyOr.MAX)
     intersection_set = intersection(fs1, fs2, FuzzyAnd.MIN)
     complement_set = complement(fs1, FuzzyNot.STANDARD)
-    cartesian_product_set = cartesian_product(fs1, fs3, FuzzyAnd.MIN)
+    cartesian_product_set = cartesian_product(fs1, fs6, FuzzyAnd.MIN)
     or_projection_set = or_projection(fs1, ('V2',), FuzzyOr.MAX)
     and_projection_set = and_projection(fs1, ('V2',), FuzzyAnd.MIN)
     print(union_set.get_string_repr(), "\nschema:", union_set.get_schema(), end="")
@@ -269,3 +352,14 @@ if __name__ == "__main__":
     print("    cardinality:", and_projection_set.get_cardinality())
     print(particularization(fs1, {'V1': fs3}, FuzzyAnd.MIN).get_string_repr())
     print("Prop{A/G} = ", proportion(fs1, fs2))
+    print(compatibility(not_fs4, fs4).get_string_repr())
+    print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", consistency(not_fs4, fs4, FuzzyAnd.MIN))
+    print(natural_join(fs1, fs5, FuzzyAnd.MIN).get_string_repr())
+
+    fs1.rename_schema({'V1': 'X1', 'V2': 'X2'})
+    print(fs1.get_schema())
+    print(fs1.get_string_repr())
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"\nElapsed time: {elapsed_time} seconds")
