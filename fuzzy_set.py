@@ -3,35 +3,6 @@ from fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr
 
 class DiscreteFuzzySet:
     def __init__(self, name: str, schema: tuple, dict_relation: dict):
-        # if dict_relation != None:
-        #     keys = list(dict_relation.keys())
-        #     # assert 'mu' in keys, "The membership degree column is missing!"
-        #     assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary in the numpy.DataFrame format!"
-        #     assert len(keys) > 0, "There must be at least one column!"
-        #     assert isinstance(keys[0], str), "All keys in 'dict_relation' must be strings representing the variables name!"
-        #     assert isinstance(dict_relation[keys[0]], list) or isinstance(dict_relation[keys[0]], tuple), "All the values in 'dict_relation' must be lists or tuples with the same length!"
-        #     length = len(dict_relation[keys[0]])
-        #     assert length > 0, "The fuzzy set must contain at least a tuple!"
-        #     for key, value in dict_relation.items():
-        #         assert isinstance(key, str), "All keys in 'dict_relation' must be strings representing the variables name!"
-        #         assert (isinstance(value, list) or isinstance(value, tuple)) and len(value) == length, "All the values in the dictionary must be lists or tuples with the same length!"
-            
-        #     self.__fuzzy_set = {}
-        #     for i in range(0, length):
-        #         variables = []
-        #         mu = 1.0
-        #         for key in keys:
-        #             if key != 'mu':
-        #                 variables.append(dict_relation[key][i])
-        #             else:
-        #                 mu = dict_relation[key][i]
-        #                 assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All values in 'mu' must be floats between [0, 1]!"
-        #         self.__fuzzy_set[tuple(variables)] = mu
-
-        #     if 'mu' in keys:
-        #         keys.remove('mu')
-        #     self.__schema = tuple(keys)
-        # else:
         assert (isinstance(schema, list) or isinstance(schema, tuple)) and len(schema) > 0, "'schema' must be a non-empty list or tuple of strings representing the variables names!"
         assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary!"
         length = len(schema)
@@ -106,9 +77,10 @@ class DiscreteFuzzySet:
             assert value not in self.__schema, value + " already in " + self.name + " schema!"
             self.__schema[self.__schema.index(key)] = value
 
-def proportion(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet) -> float:
+def proportion(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyAnd) -> float:
     assert isinstance(set1, DiscreteFuzzySet) and isinstance(set2, DiscreteFuzzySet), "'set1' and 'set2' must be both of type 'DiscreteFuzzySet'!"
-    new_set = intersection(set1, set2, FuzzyAnd.MIN)
+    assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
+    new_set = intersection(set1, set2, and_fun)
     return new_set.get_cardinality() / set2.get_cardinality()
 
 def cartesian_product(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyAnd) -> DiscreteFuzzySet:
@@ -309,6 +281,10 @@ def consistency(fuzzy_set: DiscreteFuzzySet, reference_set: DiscreteFuzzySet, an
 # Example usage:
 if __name__ == "__main__":
     start_time = time.time()
+    
+    and_fun = FuzzyAnd.MIN
+    or_fun = FuzzyOr.MAX
+    not_fun = FuzzyNot.STANDARD
 
     # fs1 = DiscreteFuzzySet('A', {'V1': [1, 'val1', 2], 'V2': ['val2', 3.4, 'val2'], 'mu': [0.3, 0.6, 0.9]})
     # fs2 = DiscreteFuzzySet('B', {'V1': [2, 'val3', 'val1'], 'V2': ['val4', 4.4, 3.4], 'mu': [0.1, 0.5, 0.7]})
@@ -318,7 +294,7 @@ if __name__ == "__main__":
     fs2 = DiscreteFuzzySet('B', ('V1', 'V2'), {(2, 'val4'): 0.1, ('val3', 4.4): 0.5, ('val1', 3.4): 0.7})
     fs3 = DiscreteFuzzySet('C', ('V1', ), {(2,): 0.1, ('val3',): 0.5})
     fs4 = DiscreteFuzzySet('NOT(SMALL_INTEGER)', ('n', ), {(0, ): .0, (1, ): .0, (2, ): 0.2, (3, ): 0.4, (4, ): 0.6, (5, ): 0.8})
-    not_fs4 = complement(fs4, FuzzyNot.STANDARD)
+    not_fs4 = complement(fs4, not_fun)
     fs5 = DiscreteFuzzySet('D', ('V1', 'V3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
     fs6 = DiscreteFuzzySet('D', ('V6', 'V3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
 
@@ -332,12 +308,12 @@ if __name__ == "__main__":
     print(not_fs4.get_string_repr())
     print(fs5.get_string_repr())
 
-    union_set = union(fs1, fs2, FuzzyOr.MAX)
-    intersection_set = intersection(fs1, fs2, FuzzyAnd.MIN)
-    complement_set = complement(fs1, FuzzyNot.STANDARD)
-    cartesian_product_set = cartesian_product(fs1, fs6, FuzzyAnd.MIN)
-    or_projection_set = or_projection(fs1, ('V2',), FuzzyOr.MAX)
-    and_projection_set = and_projection(fs1, ('V2',), FuzzyAnd.MIN)
+    union_set = union(fs1, fs2, or_fun)
+    intersection_set = intersection(fs1, fs2, and_fun)
+    complement_set = complement(fs1, not_fun)
+    cartesian_product_set = cartesian_product(fs1, fs6, and_fun)
+    or_projection_set = or_projection(fs1, ('V2',), or_fun)
+    and_projection_set = and_projection(fs1, ('V2',), and_fun)
     print(union_set.get_string_repr(), "\nschema:", union_set.get_schema(), end="")
     print("    cardinality:", union_set.get_cardinality())
     print(intersection_set.get_string_repr(), "\nschema:", intersection_set.get_schema(), end="")
@@ -350,11 +326,11 @@ if __name__ == "__main__":
     print("    cardinality:", or_projection_set.get_cardinality())
     print(and_projection_set.get_string_repr(), "\nschema:", and_projection_set.get_schema(), end="")
     print("    cardinality:", and_projection_set.get_cardinality())
-    print(particularization(fs1, {'V1': fs3}, FuzzyAnd.MIN).get_string_repr())
-    print("Prop{A/G} = ", proportion(fs1, fs2))
+    print(particularization(fs1, {'V1': fs3}, and_fun).get_string_repr())
+    print("Prop{A/G} = ", proportion(fs1, fs2, and_fun))
     print(compatibility(not_fs4, fs4).get_string_repr())
-    print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", consistency(not_fs4, fs4, FuzzyAnd.MIN))
-    print(natural_join(fs1, fs5, FuzzyAnd.MIN).get_string_repr())
+    print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", consistency(not_fs4, fs4, and_fun))
+    print(natural_join(fs1, fs5, and_fun).get_string_repr())
 
     fs1.rename_schema({'V1': 'X1', 'V2': 'X2'})
     print(fs1.get_schema())
