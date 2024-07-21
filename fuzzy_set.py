@@ -1,25 +1,61 @@
 import time
+
+from pandas import DataFrame
 from fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr
 
 class DiscreteFuzzySet:
-    def __init__(self, name: str, schema: tuple, dict_relation: dict):
-        assert (isinstance(schema, list) or isinstance(schema, tuple)) and len(schema) > 0, "'schema' must be a non-empty list or tuple of strings representing the variables names!"
-        assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary!"
-        length = len(schema)
-        sorted_schema = list(schema)
-        sorted_schema.sort()
-        for i in range(1, len(sorted_schema)):
-            assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
+    def __init__(self, name: str, schema: tuple = None, dict_relation: dict = None, dataframe: DataFrame = None):
+        if dataframe is not None:
+            dict_relation = {}
+            for key, value in dataframe.to_dict().items():
+                dict_relation[key] = tuple(value.values())
+            # print(dict_relation)
+            keys = list(dict_relation.keys())
+            # assert 'mu' in keys, "The membership degree column is missing!"
+            # assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary in the numpy.DataFrame format!"
+            assert len(keys) > 0, "There must be at least one column!"
+            assert isinstance(keys[0], str), "All keys in 'dict_relation' must be strings representing the variables name!"
+            assert isinstance(dict_relation[keys[0]], list) or isinstance(dict_relation[keys[0]], tuple), "All the values in 'dict_relation' must be lists or tuples with the same length!"
+            length = len(dict_relation[keys[0]])
+            assert length > 0, "The fuzzy set must contain at least a tuple!"
+            for key, value in dict_relation.items():
+                assert isinstance(key, str), "All keys in 'dict_relation' must be strings representing the variables name!"
+                assert (isinstance(value, list) or isinstance(value, tuple)) and len(value) == length, "All the values in the dictionary must be lists or tuples with the same length!"
+            
+            self.__fuzzy_set = {}
+            for i in range(0, length):
+                variables = []
+                mu = 1.0
+                for key in keys:
+                    if key != 'mu':
+                        variables.append(dict_relation[key][i])
+                    else:
+                        mu = dict_relation[key][i]
+                        assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All values in 'mu' must be floats between [0, 1]!"
+                self.__fuzzy_set[tuple(variables)] = mu
 
-        
-        self.__fuzzy_set = {}
-        for element, mu in dict_relation.items():
-            assert (isinstance(element, list) or isinstance(element, tuple)) and len(element) == length, "All keys in 'dict_relation' must be lists or tuples with the same length as the schema!"
-            assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
-            self.__fuzzy_set[tuple(element)] = mu
+            if 'mu' in keys:
+                keys.remove('mu')
+            self.__schema = tuple(keys)
+        else:
+            assert (isinstance(schema, list) or isinstance(schema, tuple)) and len(schema) > 0, "'schema' must be a non-empty list or tuple of strings representing the variables names!"
+            assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary!"
+            length = len(schema)
+            sorted_schema = list(schema)
+            sorted_schema.sort()
+            for i in range(1, len(sorted_schema)):
+                assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
 
+            
+            self.__fuzzy_set = {}
+            for element, mu in dict_relation.items():
+                assert (isinstance(element, list) or isinstance(element, tuple)) and len(element) == length, "All keys in 'dict_relation' must be lists or tuples with the same length as the schema!"
+                assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
+                self.__fuzzy_set[tuple(element)] = mu
+
+            self.__schema = list(schema)
         self.name = name
-        self.__schema = list(schema)
+        
 
     def __getitem__(self, element) -> float:
         if element in self.__fuzzy_set.keys():
@@ -51,6 +87,18 @@ class DiscreteFuzzySet:
     def to_dictionary(self) -> dict:
         return self.__fuzzy_set.copy()
     
+    def get_tabular_str(self) -> str:
+        # print("{:<25}{:<25}{:<25}{:<25}".format("Metric", "Score Mean", "Score Variance", "Score Std"))
+        s = self.name + ' = \n'
+        for key in self.__schema:
+            s += "{:<15}".format(key)
+        s += 'mu\n\n'
+        for key, value in self.__fuzzy_set.items():
+            for var in key:
+                s += "{:<15}".format(var)
+            s += "{:<15}\n".format(value)
+        return s
+
     def get_string_repr(self) -> str:
         s = self.name + ' ='
         for value, membership in self.__fuzzy_set.items():
@@ -229,25 +277,27 @@ def natural_join(set1: DiscreteFuzzySet, set2: DiscreteFuzzySet, and_fun: FuzzyA
 
     schema1 = set1.get_schema()
     schema2 = list(set2.get_schema())
-    indexes = []
+    indexes1 = []
+    indexes2 = []
     for index, var in enumerate(schema1):
         if var in schema2:
-            indexes.append(index)
+            indexes1.append(index)
+            indexes2.append(schema2.index(var))
             schema2.remove(var)
 
-    assert len(indexes) > 0, "'set1' and 'set2' must have at least one variable in common int their schema!"
+    assert len(indexes1) > 0, "'set1' and 'set2' must have at least one variable in common int their schema!"
     new_set = {}
     for element1, membership1 in set1.to_dictionary().items():
         for element2, membership2 in set2.to_dictionary().items():
             to_insert = True
-            for index in indexes:
-                if element1[index] != element2[index]:
+            for index in range(0, len(indexes1)):
+                if element1[indexes1[index]] != element2[indexes2[index]]:
                     to_insert = False
                     break
-            new_elem = list(element1)
             if to_insert:
+                new_elem = list(element1)
                 for index, var in enumerate(element2):
-                    if index not in indexes:
+                    if index not in indexes2:
                         new_elem.append(var)
                 new_set[tuple(new_elem)] = and_fun(membership1, membership2)
     return DiscreteFuzzySet(set1.name + ' ⋈ ' + set2.name, schema1 + tuple(schema2), new_set)
