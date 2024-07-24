@@ -1,10 +1,29 @@
+from abc import abstractmethod
 from decimal import Decimal, getcontext
 from enum import Enum, member
 import math
 
 getcontext().prec = 4
 
-class FuzzyAnd(Enum):
+class FuzzyOperator(Enum):
+
+    @abstractmethod
+    def __call__(self) -> float:
+        pass
+
+class FuzzyUnaryOperator(FuzzyOperator):
+
+    @abstractmethod
+    def __call__(self, a: float) -> float:
+        pass
+
+class FuzzyBinaryOperator(FuzzyOperator):
+
+    @abstractmethod
+    def __call__(self, a: float, b: float) -> float:
+        pass
+
+class FuzzyAnd(FuzzyBinaryOperator):
     MIN = min
 
     @member
@@ -28,7 +47,7 @@ class FuzzyAnd(Enum):
         assert 0.0 <= a and a <= 1.0 and 0.0 <= b and b <= 1.0, "'a' and 'b' must be between [0, 1]!"
         return self.value(a, b)
 
-class FuzzyOr(Enum):
+class FuzzyOr(FuzzyBinaryOperator):
     MAX = max
 
     @member
@@ -51,7 +70,7 @@ class FuzzyOr(Enum):
         assert 0.0 <= a and a <= 1.0 and 0.0 <= b and b <= 1.0, "'a' and 'b' must be between [0, 1]!"
         return self.value(a, b)
 
-class FuzzyNot(Enum):
+class FuzzyNot(FuzzyUnaryOperator):
     
     @member
     def STANDARD(value: float) -> float:
@@ -68,12 +87,34 @@ class FuzzyNot(Enum):
         assert 0.0 <= a and a <= 1.0, "'a' must be between [0, 1]!"
         return self.value(a)
 
-class LinguisticModifiers(Enum):
+class FuzzyLogic():
 
-    @member # da valutare
-    def NOT(value: float) -> float:
-        return float(Decimal(1.0) - Decimal(value))
-        # return 1.0 - value
+    __and_fun: FuzzyAnd = FuzzyAnd.MIN
+    __or_fun: FuzzyOr = FuzzyOr.MAX
+    __not_fun: FuzzyNot = FuzzyNot.STANDARD
+
+    def and_fun(a: float, b: float) -> float:
+        return FuzzyLogic.__and_fun(a, b)
+
+    def or_fun(a: float, b: float) -> float:
+        return FuzzyLogic.__or_fun(a, b)
+
+    def not_fun(a: float) -> float:
+        return FuzzyLogic.__not_fun(a)
+
+    def set_and_fun(and_fun: FuzzyAnd) -> None:
+        assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
+        __and_fun = and_fun
+
+    def set_or_fun(or_fun: FuzzyOr) -> None:
+        assert isinstance(or_fun, FuzzyOr), "'or_fun' must be of type 'FuzzyOr'!"
+        __or_fun = or_fun
+        
+    def set_not_fun(not_fun: FuzzyNot) -> None:
+        assert isinstance(not_fun, FuzzyNot), "'not_fun' must be of type 'FuzzyNot'!"
+        __not_fun = not_fun
+
+class LinguisticModifiers(FuzzyUnaryOperator):
 
     @member
     def VERY(value: float) -> float:
