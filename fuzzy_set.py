@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 import time
+from typing import Callable, Tuple
 
 from pandas import DataFrame
-from fuzzy_logic import FuzzyAnd, FuzzyBinaryOperator, FuzzyLogic, FuzzyNot, FuzzyOr
+from fuzzy_logic import FuzzyAnd, FuzzyBinaryOperator, FuzzyLogic, FuzzyOr, FuzzyUnaryOperator, LinguisticModifiers
 from membership_functions import MembershipFunction
 
 class FuzzySet(ABC):
@@ -13,6 +14,10 @@ class FuzzySet(ABC):
 
     @abstractmethod
     def __setitem__(self, element, membership: float) -> None: # add/update_element: []
+        pass
+
+    @abstractmethod
+    def __delitem__(self, element) -> None: # del
         pass
 
     @abstractmethod
@@ -44,7 +49,7 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def select(self, assignment: dict): # particularization
+    def particularization(self, assignment: dict): # particularization
         pass
 
     @abstractmethod
@@ -71,6 +76,22 @@ class FuzzySet(ABC):
     def rename_domain(self, ren_dict: dict) -> None: # <<
         pass
 
+    @abstractmethod
+    def select(self, condition: Callable):
+        pass
+
+    @abstractmethod
+    def apply(self, operator: FuzzyUnaryOperator):
+        pass
+
+    @abstractmethod
+    def extension_principle(self, function: Callable, out_domain: tuple):
+        pass
+
+    @abstractmethod
+    def cilindrical_extension(self, set2):
+        pass
+
 class ContinuousFuzzySet(FuzzySet):
     def __init__(self, domain: tuple, mf: MembershipFunction):
         assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
@@ -87,6 +108,9 @@ class ContinuousFuzzySet(FuzzySet):
         return self.mf(element)
 
     def __setitem__(self, element, membership: float) -> None: # add/update_element: []
+        pass
+
+    def __delitem__(self, element) -> None:
         pass
 
     def __or__(self, set2): # union: |, |=
@@ -110,7 +134,7 @@ class ContinuousFuzzySet(FuzzySet):
     def projection(self, subdomain: tuple, operator: FuzzyBinaryOperator):
         pass
 
-    def select(self, assignment: dict): # particularization
+    def particularization(self, assignment: dict): # particularization
         pass
 
     def cardinality(self) -> float:
@@ -129,29 +153,41 @@ class ContinuousFuzzySet(FuzzySet):
         return tuple(self.__domain)
 
     def rename_domain(self, ren_dict: dict) -> None:
-        assert isinstance(ren_dict, dict), "'dict_relation' must be a dictionary!"
+        assert isinstance(ren_dict, dict), "'ren_dict' must be a dictionary!"
         for key, value in ren_dict.items():
             assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
             assert key in self.__domain, key + " not in this FuzzySet domain!"
             assert value not in self.__domain, value + " already in this FuzzySet domain!"
             self.__domain[self.__domain.index(key)] = value
+    
+    def select(self, condition: Callable) -> FuzzySet:
+        pass
+
+    def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
+        pass
+
+    def extension_principle(self, function: Callable, out_domain: tuple):
+        pass
+
+    def cilindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
+        pass
 
 class DiscreteFuzzySet(FuzzySet):
-    def __init__(self, domain: tuple = None, dict_relation: dict = None, dataframe: DataFrame = None):
+    def __init__(self, domain: tuple = None, data = None):
         self.__non_membership_value = 0.0
-        if dataframe is not None:
+        if isinstance(data, DataFrame):
             dict_relation = {}
-            for key, value in dataframe.to_dict().items():
+            for key, value in data.to_dict().items():
                 dict_relation[key] = tuple(value.values())
             keys = list(dict_relation.keys())
-            assert len(keys) > 0, "There must be at least one column!"
-            assert isinstance(keys[0], str), "All keys in 'dict_relation' must be strings representing the variables name!"
-            assert isinstance(dict_relation[keys[0]], list) or isinstance(dict_relation[keys[0]], tuple), "All the values in 'dict_relation' must be lists or tuples with the same length!"
+            # assert len(keys) > 0, "There must be at least one column!"
+            # assert isinstance(keys[0], str), "All keys in 'dict_relation' must be strings representing the variables name!"
+            # assert isinstance(dict_relation[keys[0]], list) or isinstance(dict_relation[keys[0]], tuple), "All the values in 'dict_relation' must be lists or tuples with the same length!"
             length = len(dict_relation[keys[0]])
-            assert length > 0, "The fuzzy set must contain at least a tuple!"
-            for key, value in dict_relation.items():
-                assert isinstance(key, str), "All keys in 'dict_relation' must be strings representing the variables name!"
-                assert (isinstance(value, list) or isinstance(value, tuple)) and len(value) == length, "All the values in the dictionary must be lists or tuples with the same length!"
+            # assert length > 0, "The fuzzy set must contain at least a tuple!"
+            # for key, value in dict_relation.items():
+                # assert isinstance(key, str), "All keys in 'dict_relation' must be strings representing the variables name!"
+                # assert (isinstance(value, list) or isinstance(value, tuple)) and len(value) == length, "All the values in the dictionary must be lists or tuples with the same length!"
             
             self.__fuzzy_set = {}
             for i in range(0, length):
@@ -170,19 +206,19 @@ class DiscreteFuzzySet(FuzzySet):
             self.__domain = list(keys)
         else:
             assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
-            assert isinstance(dict_relation, dict), "'dict_relation' must be a dictionary!"
             length = len(domain)
             sorted_domain = list(domain)
             sorted_domain.sort()
             for i in range(1, len(sorted_domain)):
                 assert domain[i] != domain[i - 1], "'domain' must not contains duplicates!"
 
-            
             self.__fuzzy_set = {}
-            for element, mu in dict_relation.items():
-                assert (isinstance(element, list) or isinstance(element, tuple)) and len(element) == length, "All keys in 'dict_relation' must be lists or tuples with the same length as the domain!"
-                assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
-                self.__fuzzy_set[tuple(element)] = mu
+            if data is not None:
+                assert isinstance(data, dict), "'data' must be 'None', a dictionary or a dataframe!"
+                for element, mu in data.items():
+                    assert (isinstance(element, list) or isinstance(element, tuple)) and len(element) == length, "All keys in 'data' must be lists or tuples with the same length as the domain!"
+                    assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
+                    self.__fuzzy_set[tuple(element)] = mu
 
             self.__domain = list(domain)
     
@@ -198,6 +234,10 @@ class DiscreteFuzzySet(FuzzySet):
         assert len(self.__domain) == len(element), "'element' must be a tuple of the same length of the domain!"
 
         self.__fuzzy_set[element] = membership
+
+    def __delitem__(self, element) -> None:
+        if element in self.__fuzzy_set:
+            del self.__fuzzy_set[element]
 
     def __or__(self, set2: FuzzySet) -> FuzzySet: # union: |, |=
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
@@ -306,7 +346,7 @@ class DiscreteFuzzySet(FuzzySet):
         fs = DiscreteFuzzySet(subdomain, new_set)
         return fs
     
-    def select(self, assignment: dict) -> FuzzySet:
+    def particularization(self, assignment: dict) -> FuzzySet: # ATTENZIONE: VERIFICA SOLO L'UGUAGLIANZA E PERTANTO NON è UNA SELEZIONE
         assert isinstance(assignment, dict), "'assignment' must be a dictionary!"
 
         domain = self.get_domain()
@@ -348,13 +388,13 @@ class DiscreteFuzzySet(FuzzySet):
             n += 1
         return memberships_sum / n
 
-    def compatibility(self, reference_set: FuzzySet) -> FuzzySet:
-        assert isinstance(reference_set, DiscreteFuzzySet), "'reference_set' must be of type 'DiscreteFuzzySet'!"
-        assert self.get_domain() == reference_set.get_domain(), "'reference_set' must have the same domain!"
+    def compatibility(self, set2: FuzzySet) -> FuzzySet: # returns Comp{self / set2}
+        assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
+        assert self.get_domain() == set2.get_domain(), "'set2' must have the same domain!"
 
         new_set = {}
-        for element, membership in reference_set.to_dictionary().items():
-            key = (reference_set[element], )
+        for element, membership in set2.to_dictionary().items():
+            key = (membership, )
             if key in new_set.keys():
                 new_set[key] = max(self[element], new_set[key])
             else:
@@ -376,15 +416,84 @@ class DiscreteFuzzySet(FuzzySet):
         return tuple(self.__domain)
 
     def rename_domain(self, ren_dict: dict) -> None:
-        assert isinstance(ren_dict, dict), "'dict_relation' must be a dictionary!"
+        assert isinstance(ren_dict, dict), "'ren_dict' must be a dictionary!"
         for key, value in ren_dict.items():
             assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
             assert key in self.__domain, key + " not in this FuzzySet domain!"
             assert value not in self.__domain, value + " already in this FuzzySet domain!"
             self.__domain[self.__domain.index(key)] = value
 
+    def select(self, condition: Callable) -> FuzzySet:
+        assert isinstance(condition, Callable), "'function' must be a callable function!"
+        new_set = {}
+        for element, membership in self.__fuzzy_set.items():
+            if condition(tuple(list(element) + [membership])):
+                new_set[element] = membership
+        return DiscreteFuzzySet(self.get_domain(), new_set)
+    
+    def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
+        assert isinstance(operator, FuzzyUnaryOperator), "'operator' must be of type 'FuzzyUnaryOperator'!"
+        assert len(self.__fuzzy_set.keys()) > 0, "The fuzzy set must not be empty!"
+        new_set = {}
+        for element, membership in self.__fuzzy_set.items():
+            new_set[element] = operator(membership)
+        return DiscreteFuzzySet(self.get_domain(), new_set)
+    
+    def extension_principle(self, function: Callable, out_domain: tuple) -> FuzzySet:
+        assert isinstance(function, Callable), "'function' must be a callable function!"
+        new_set = {}
+        for element, membership in self.__fuzzy_set.items():
+            y = function(element)
+            if y in new_set:
+                new_set[y] = FuzzyLogic.or_fun(new_set[y], membership)
+            else:
+                new_set[y] = membership
+        return DiscreteFuzzySet(new_set, out_domain)
+    
+    def cilindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
+        assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'"
+        domain1 = self.get_domain()
+        domain2 = list(set2.get_domain())
+        indexes1 = []
+        indexes2 = []
+        for index, var in enumerate(domain1):
+            if var in domain2:
+                indexes1.append(index)
+                indexes2.append(domain2.index(var))
+                domain2.remove(var)
+        
+        set1_extension = {}
+        set2_extension = {}
+        for element1, membership1 in self.__fuzzy_set.items():
+            for element2, membership2 in set2.to_dictionary().items():
+                new_elem = list(element1)
+                for index, var in enumerate(element2):
+                    if index not in indexes2:
+                        new_elem.append(var)
+                set1_extension[tuple(new_elem)] = membership1
+                set2_extension[tuple(new_elem)] = membership2
+        return DiscreteFuzzySet(domain1 + tuple(domain2), set1_extension), DiscreteFuzzySet(domain1 + tuple(domain2), set2_extension)
+
+    def collapse(self, operator: FuzzyBinaryOperator) -> float: # differentia
+        assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
+        assert len(self.__fuzzy_set.keys()) > 1, "The fuzzy set must have at least two elements!"
+        memberships = list(self.__fuzzy_set.values())
+        result = memberships[0]
+        for membership in memberships[1:]:
+            result = operator(result, membership)
+        return result
+
     def to_dictionary(self) -> dict: # differentia
         return self.__fuzzy_set.copy()
+    
+    def elements(self): # differentia
+        return self.__fuzzy_set.keys()
+
+    def memberships(self): # differentia
+        return self.__fuzzy_set.values()
+    
+    def items(self): # differentia
+        return self.__fuzzy_set.items()
     
     def get_tabular_str(self) -> str: # differentia
         s = ''
@@ -437,7 +546,7 @@ if __name__ == "__main__":
     cartesian_product_set = A * F
     or_projection_set = A.projection(('D2',), FuzzyOr.MAX)
     and_projection_set = A.projection(('D2',), FuzzyAnd.MIN)
-    select = A.select({'D1': C})
+    particularization = A.particularization({'D1': C})
     print("A ∪ B =", union_set, "\ndomain:", union_set.get_domain(), end="")
     print("    cardinality:", union_set.cardinality())
     print("A ∩ B =", intersection_set, "\ndomain:", intersection_set.get_domain(), end="")
@@ -450,11 +559,12 @@ if __name__ == "__main__":
     print("    cardinality:", or_projection_set.cardinality())
     print("and_projection(A, ('D2'))", and_projection_set, "\ndomain:", and_projection_set.get_domain(), end="")
     print("    cardinality:", and_projection_set.cardinality())
-    print("select(A, {'D1': C})", select)
+    print("particularization(A, {'D1': C})", particularization)
     print("proportion{A/G} = ", A / B)
     print(not_D.compatibility(D))
     print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", not_D.consistency(D))
     print("A ⋈ E =", (A @ E))
+    print("very(A) =", A.apply(LinguisticModifiers.VERY))
 
     A.rename_domain({'D1': 'X1', 'D2': 'X2'})
     print(A.get_domain())

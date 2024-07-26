@@ -106,6 +106,6 @@ class Bell(MembershipFunction):
 # plot_function(f = Trapezoidal(-200.0, -100.0, 100.0, 200.0),
 #               title = 'f(x)')
 
-plot_function(f = Trapezoidal(-sys.float_info.max, -100.0, 100.0, sys.float_info.max),
-              title = 'f(x)')
-print(Trapezoidal(-sys.float_info.max, -100.0, 100.0, sys.float_info.max)(50.0))
+# plot_function(f = Trapezoidal(-sys.float_info.max, -100.0, 100.0, sys.float_info.max),
+#               title = 'f(x)')
+# print(Trapezoidal(-sys.float_info.max, -100.0, 100.0, sys.float_info.max)(50.0))
