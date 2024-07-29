@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import time
 from typing import Callable, Tuple
+from __future__ import annotations
 
 from pandas import DataFrame
 from fuzzy_logic import FuzzyAnd, FuzzyBinaryOperator, FuzzyLogic, FuzzyOr, FuzzyUnaryOperator, LinguisticModifiers
@@ -174,13 +175,12 @@ class ContinuousFuzzySet(FuzzySet):
 
 class DiscreteFuzzySet(FuzzySet):
     def __init__(self, domain: tuple = None, data = None):
-        self.__non_membership_value = 0.0
         if isinstance(data, DataFrame):
             dict_relation = {}
             for key, value in data.to_dict().items():
                 dict_relation[key] = tuple(value.values())
             keys = list(dict_relation.keys())
-            # assert len(keys) > 0, "There must be at least one column!"
+            assert len(keys) > 0, "There must be at least one column!"
             # assert isinstance(keys[0], str), "All keys in 'dict_relation' must be strings representing the variables name!"
             # assert isinstance(dict_relation[keys[0]], list) or isinstance(dict_relation[keys[0]], tuple), "All the values in 'dict_relation' must be lists or tuples with the same length!"
             length = len(dict_relation[keys[0]])
@@ -203,7 +203,7 @@ class DiscreteFuzzySet(FuzzySet):
 
             if 'mu' in keys:
                 keys.remove('mu')
-            self.__domain = list(keys)
+            self.__domain = keys
         else:
             assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
             length = len(domain)
@@ -214,22 +214,22 @@ class DiscreteFuzzySet(FuzzySet):
 
             self.__fuzzy_set = {}
             if data is not None:
-                assert isinstance(data, dict), "'data' must be 'None', a dictionary or a dataframe!"
+                assert isinstance(data, dict), "'data' must be 'None', a dictionary or a Dataframe!"
                 for element, mu in data.items():
-                    assert (isinstance(element, list) or isinstance(element, tuple)) and len(element) == length, "All keys in 'data' must be lists or tuples with the same length as the domain!"
+                    assert isinstance(element, tuple) and len(element) == length, "All keys in 'data' must be lists or tuples with the same length as the domain!"
                     assert isinstance(mu, float) and 0.0 <= mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
-                    self.__fuzzy_set[tuple(element)] = mu
+                    self.__fuzzy_set[element] = mu
 
             self.__domain = list(domain)
     
     def __getitem__(self, element) -> float: # membership: []
         if element in self.__fuzzy_set.keys():
             return self.__fuzzy_set[element]
-        return self.__non_membership_value
+        return .0
     
     def __setitem__(self, element, membership: float) -> None: # add/update_element: []
         assert isinstance(membership, float), "'membership' must be a float!"
-        assert 0 <= membership and membership <= 1, "'membership' must be between 0 and 1 inclusive!"
+        assert .0 <= membership and membership <= 1.0, "'membership' must be in [0, 1] interval!"
         assert isinstance(element, tuple), "'element' must be a tuple! "
         assert len(self.__domain) == len(element), "'element' must be a tuple of the same length of the domain!"
 
@@ -255,21 +255,15 @@ class DiscreteFuzzySet(FuzzySet):
         
         new_set = {}
         for element, membership1 in self.__fuzzy_set.items():
-            membership2 = set2[element]
-            new_membership = FuzzyLogic.and_fun(membership1, membership2)
-            # if new_membership > .0: # scelta progettuale: gli elementi con mu == 0 li mantieni oppure no? -> scelgo no
-            #     new_set[element] = new_membership
-            new_set[element] = new_membership
+            new_set[element] = FuzzyLogic.and_fun(membership1, set2[element])
         fs = DiscreteFuzzySet(self.get_domain(), new_set)
         return fs
     
-    def __invert__(self) -> FuzzySet: # complement: ~
+    def __invert__(self) -> FuzzySet: # complement: ~ # complemento relativo al dominio (self.domain) specificato assumendo che la definizione del DiscreteFuzzySet sia completa
         new_set = {}
         for element, membership in self.__fuzzy_set.items():
             new_set[element] = FuzzyLogic.not_fun(membership)
-
         fs = DiscreteFuzzySet(self.get_domain(), new_set)
-        fs.__non_membership_value = FuzzyLogic.not_fun(fs.__non_membership_value)
         return fs
     
     def __mul__(self, set2: FuzzySet) -> FuzzySet: # cartesian_product: *, *=
@@ -291,28 +285,29 @@ class DiscreteFuzzySet(FuzzySet):
 
         domain1 = self.get_domain()
         domain2 = list(set2.get_domain())
-        indexes1 = []
-        indexes2 = []
+        indexes_to_check_1 = []
+        indexes_to_check_2 = []
+        indexes_to_insert_2 = list(range(len(domain2)))
         for index, var in enumerate(domain1):
             if var in domain2:
-                indexes1.append(index)
-                indexes2.append(domain2.index(var))
+                indexes_to_check_1.append(index)
+                indexes_to_check_2.append(domain2.index(var))
+                indexes_to_insert_2.remove(domain2.index(var))
                 domain2.remove(var)
-        assert len(indexes1) > 0, "'set1' and 'set2' must have at least one set in common in their domain!"
+        assert len(indexes_to_check_1) > 0, "'set1' and 'set2' must have at least one set in common in their domain!"
 
         new_set = {}
         for element1, membership1 in self.__fuzzy_set.items():
             for element2, membership2 in set2.to_dictionary().items():
                 to_insert = True
-                for index in range(0, len(indexes1)):
-                    if element1[indexes1[index]] != element2[indexes2[index]]:
+                for index in range(0, len(indexes_to_check_1)):
+                    if element1[indexes_to_check_1[index]] != element2[indexes_to_check_2[index]]:
                         to_insert = False
                         break
                 if to_insert:
                     new_elem = list(element1)
-                    for index, var in enumerate(element2):
-                        if index not in indexes2:
-                            new_elem.append(var)
+                    for index in indexes_to_insert_2:
+                        new_elem.append(element2[index])
                     new_set[tuple(new_elem)] = FuzzyLogic.and_fun(membership1, membership2)
         return DiscreteFuzzySet(domain1 + tuple(domain2), new_set)
 
@@ -364,12 +359,11 @@ class DiscreteFuzzySet(FuzzySet):
         for element, membership in self.__fuzzy_set.items():
             for index in indexes:
                 if element[index] != assignment[domain[index]]:
-                    membership = 0
+                    membership = .0
                     break
             for index in fs_indexes:
                 membership = FuzzyLogic.and_fun(assignment[domain[index]][(element[index],)], membership)
-            if membership > 0:
-                new_set[element] = membership
+            new_set[element] = membership
 
         fs = DiscreteFuzzySet(domain, new_set)
         return fs
@@ -454,12 +448,12 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'"
         domain1 = self.get_domain()
         domain2 = list(set2.get_domain())
-        indexes1 = []
-        indexes2 = []
+        to_insert_1 = list(range(len(domain1)))
+        to_insert_2 = list(range(len(domain2)))
         for index, var in enumerate(domain1):
             if var in domain2:
-                indexes1.append(index)
-                indexes2.append(domain2.index(var))
+                to_insert_1.remove(index)
+                to_insert_2.remove(domain2.index(var))
                 domain2.remove(var)
         
         set1_extension = {}
@@ -467,10 +461,12 @@ class DiscreteFuzzySet(FuzzySet):
         for element1, membership1 in self.__fuzzy_set.items():
             for element2, membership2 in set2.to_dictionary().items():
                 new_elem = list(element1)
-                for index, var in enumerate(element2):
-                    if index not in indexes2:
-                        new_elem.append(var)
+                for index in to_insert_2:
+                    new_elem.append(element2[index])
                 set1_extension[tuple(new_elem)] = membership1
+                new_elem = list(element2)
+                for index in to_insert_1:
+                    new_elem.append(element1[index])
                 set2_extension[tuple(new_elem)] = membership2
         return DiscreteFuzzySet(domain1 + tuple(domain2), set1_extension), DiscreteFuzzySet(domain1 + tuple(domain2), set2_extension)
 
@@ -529,7 +525,6 @@ if __name__ == "__main__":
     E = DiscreteFuzzySet(('D1', 'D3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
     F = DiscreteFuzzySet(('D6', 'D3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
 
-    print("non_membership_value of not_D:", not_D['ciaofra'])
     print("A[(1, 'val2')]:", A[(1, 'val2')])
     A[(1, 'val2')] = 0.7
     print("A[(1, 'val2')] (modified with 0.7):", A[(1, 'val2')])
@@ -565,6 +560,7 @@ if __name__ == "__main__":
     print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", not_D.consistency(D))
     print("A ⋈ E =", (A @ E))
     print("very(A) =", A.apply(LinguisticModifiers.VERY))
+    print("Cilindrical_Extension(A, F) =\n", A.cilindrical_extension(F)[0].get_tabular_str())
 
     A.rename_domain({'D1': 'X1', 'D2': 'X2'})
     print(A.get_domain())
