@@ -1,4 +1,5 @@
 import unittest
+from pyPRUF.fuzzy_logic import FuzzyNot, LinguisticModifiers
 from pyPRUF.fuzzy_set import *
 
 class Test_DiscreteFuzzySet___init__(unittest.TestCase):
@@ -743,3 +744,340 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
         subdomain = ('A', 'C')
         with self.assertRaises(AssertionError):
             self.fuzzy_set.projection(subdomain, None)
+
+class Test_DiscreteFuzzySet_particularization(unittest.TestCase):
+
+    def setUp(self):
+        self.data_fs = DiscreteFuzzySet(
+            ('A', 'B', 'C', 'D'), {
+            ('a1', 'b1', 'c1', 'd1'): 0.8,
+            ('a3', 'b1', 'c1', 'd1'): 0.2,
+            ('a1', 'b2', 'c1', 'd1'): 0.6,
+            ('a1', 'b1', 'c2', 'd2'): 0.3,
+            ('a3', 'b2', 'c1', 'd3'): 0.7,
+            ('a3', 'b3', 'c1', 'd1'): 0.1,
+            ('a1', 'b2', 'c2', 'd1'): 0.5,
+        })
+        self.fs_ass1 = DiscreteFuzzySet(
+            ('B', ), {
+            ('b1', ): 0.7,
+            ('b2', ): 0.4,
+            ('b3', ): 0.2,
+        })
+        self.fs_ass2 = DiscreteFuzzySet(
+            ('C', ), {
+            ('c1', ): 0.4,
+            ('c2', ): 0.1,
+        })
+    
+    def test_invalid_assignment_type(self):
+        with self.assertRaises(AssertionError):
+            self.data_fs.particularization('fake')
+    
+    def test_invalid_assignment_keys(self):
+        with self.assertRaises(AssertionError):
+            self.data_fs.particularization({'A': 3, 'fake': 2})
+    
+    def test_valid_assignment(self):
+        result = self.data_fs.particularization({'A': 'a1', 'B': self.fs_ass1, 'C': self.fs_ass2, 'D': 'd1'})
+        self.assertEqual(result.to_dictionary(), {
+            ('a1', 'b1', 'c1', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4),
+            ('a1', 'b2', 'c1', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.6, .4), .4),
+            ('a1', 'b2', 'c2', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.5, .4), .1)
+        })
+
+class Test_DiscreteFuzzySet_cardinality(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a1', ): 0.8,
+            ('a2', ): 0.2,
+            ('a3', ): 0.6,
+            ('a4', ): 0.3,
+            ('a5', ): 0.7,
+            ('a6', ): 0.1,
+            ('a7', ): 0.5,
+        })
+    
+        self.empty = DiscreteFuzzySet( ('A', ), {} )
+        self.fs2 = DiscreteFuzzySet(('A', ), {('a', ): .3})
+    
+    def test_empty_fs(self):
+        self.assertEqual(self.empty.cardinality(), .0)
+    
+    def test_non_empty_fs(self):
+        self.assertEqual(self.fs1.cardinality(), 3.2)
+    
+    def test_single_element_fs(self):
+        self.assertEqual(self.fs2.cardinality(), .3)
+
+class Test_DiscreteFuzzySet_mean_cardinality(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a1', ): 0.8,
+            ('a2', ): 0.2,
+            ('a3', ): 0.6,
+            ('a4', ): 0.3,
+            ('a5', ): 0.7,
+            ('a6', ): 0.1,
+            ('a7', ): 0.5,
+        })
+    
+        self.empty = DiscreteFuzzySet( ('A', ), {} )
+        self.fs2 = DiscreteFuzzySet(('A', ), {('a', ): .3})
+    
+    def test_empty_fs(self):
+        self.assertEqual(self.empty.mean_cardinality(), .0)
+    
+    def test_non_empty_fs(self):
+        self.assertEqual(self.fs1.mean_cardinality(), 3.2 / 7.0)
+    
+    def test_single_element_fs(self):
+        self.assertEqual(self.fs2.mean_cardinality(), .3)
+
+class Test_DiscreteFuzzySet_compatibility(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a1', ): 0.6,
+            ('a2', ): 0.7,
+            ('a3', ): 0.2,
+            ('a4', ): 0.4,
+            ('a5', ): 0.6,
+            ('a6', ): 0.9,
+            ('a7', ): 0.3,
+            ('a8', ): 0.7,
+            ('a9', ): 0.1,
+            ('a10', ): 0.6,
+            ('a11', ): 0.5,
+            ('a12', ): 0.9,
+            ('a13', ): 0.3,
+            ('a14', ): 0.4
+        })
+        self.fs2 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a1', ): 0.3,
+            ('a2', ): 0.3,
+            ('a3', ): 0.4,
+            ('a4', ): 0.4,
+            ('a5', ): 0.5,
+            ('a6', ): 0.5,
+            ('a7', ): 0.6,
+            ('a8', ): 0.6,
+            ('a9', ): 0.7,
+            ('a10', ): 0.8,
+            ('a11', ): 0.9,
+            ('a12', ): 0.9,
+            ('a13', ): 0.9,
+            ('a14', ): 0.2,
+        })
+    
+    def test_valid_set(self):
+        result = self.fs1.compatibility(self.fs2)
+        self.assertEqual(result.to_dictionary(), {
+            (.2, ): .4,
+            (.3, ): .7,
+            (.4, ): .4,
+            (.5, ): .9,
+            (.6, ): .7,
+            (.7, ): .1,
+            (.8, ): .6,
+            (.9, ): .9
+        })
+
+    def test_invalid_fs_type(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.compatibility('fake')
+
+    def test_different_domains(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.compatibility(DiscreteFuzzySet(('C', ), {}))
+
+class Test_DiscreteFuzzySet_consistency(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a', ): 0.3,
+            ('b', ): 0.2,
+            ('c', ): 0.7,
+            ('d', ): 0.6,
+            ('e', ): 0.9,
+            ('f', ): 0.5
+        })
+        self.fs2 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a', ): 0.7,
+            ('b', ): 0.5,
+            ('c', ): 0.3,
+            ('d', ): 0.4,
+            ('e', ): 0.1,
+            ('f', ): 0.8
+        })
+    
+    def test_valid_sets(self):
+        result = self.fs1.consistency(self.fs2)
+        self.assertEqual(result, .5)
+    
+    def test_commutativity(self):
+        result1 = self.fs1.consistency(self.fs2)
+        result2 = self.fs2.consistency(self.fs1)
+        self.assertEqual(result1, result2)
+    
+    def test_with_empty_sets(self):
+        empty = DiscreteFuzzySet(('A', ), {})
+        self.assertEqual(empty.consistency(empty), .0)
+    
+    def test_with_a_empty_set(self):
+        empty = DiscreteFuzzySet(('A', ), {})
+        self.assertEqual(self.fs1.consistency(empty), .0)
+
+    def test_invalid_fs_type(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.consistency('fake')
+    
+    def test_different_domains(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.consistency(DiscreteFuzzySet(('C', ), {}))
+
+class Test_DiscreteFuzzySet_apply(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a1', ): 0.6,
+            ('a2', ): 0.3,
+            ('a3', ): 0.2,
+            ('a4', ): 0.4,
+            ('a5', ): 0.3
+        })
+    
+    def test_valid_apply(self):
+        operator = LinguisticModifiers.VERY
+        result = self.fs1.apply(operator)
+        self.assertEqual(result.to_dictionary(), {
+            ('a1', ): operator(.6),
+            ('a2', ): operator(.3),
+            ('a3', ): operator(.2),
+            ('a4', ): operator(.4),
+            ('a5', ): operator(.3)
+        })
+    
+    def test_with_empty_fs(self):
+        operator = LinguisticModifiers.VERY
+        empty = DiscreteFuzzySet(('A', ), {})
+        result = empty.apply(operator)
+        self.assertEqual(result.to_dictionary(), {})
+    
+    def test_elements_with_mu_0(self):
+        operator = FuzzyNot.STANDARD
+        self.fs1[('h', )] = 1.0
+        result = self.fs1.apply(operator)
+        self.assertEqual(result.to_dictionary(), {
+            ('a1', ): operator(.6),
+            ('a2', ): operator(.3),
+            ('a3', ): operator(.2),
+            ('a4', ): operator(.4),
+            ('a5', ): operator(.3)
+        })
+
+    def test_invalid_type(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.apply('fake')
+
+class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
+
+    def setUp(self):
+        self.fs1 = DiscreteFuzzySet(
+            ('H', 'A', 'I', 'B', 'D', 'C', 'E'), {
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1'): .4,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2'): .2,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3'): .6
+        })
+        self.fs2 = DiscreteFuzzySet(
+            ('F', 'B', 'G', 'C', 'Q', 'A', 'R'), {
+            ('f1', 'b4','g1', 'c4', 'q1', 'a4', 'r1'): .2,
+            ('f2', 'b5','g2', 'c5', 'q2', 'a5', 'r2'): .5,
+            ('f3', 'b6','g3', 'c6', 'q3', 'a6', 'r3'): .9
+        })
+        self.fs3 = DiscreteFuzzySet(
+            ('X', 'Y'), {
+            ('x1', 'y1'): .8,
+            ('x2', 'y2'): .7,
+            ('x3', 'y3'): .2
+        })
+        self.res1, self.res2 = self.fs1.cilindrical_extension(self.fs2)
+        self.dis_res1, self.dis_res2 = self.fs1.cilindrical_extension(self.fs3)
+
+    def test_partial_overlapping_res1(self):
+        self.assertEqual(self.res1.to_dictionary(), {
+            ('a1', 'b1', 'c1', 'h1', 'i1', 'd1', 'e1', 'f1', 'g1', 'q1', 'r1'): .4,
+            ('a1', 'b1', 'c1', 'h1', 'i1', 'd1', 'e1', 'f2', 'g2', 'q2', 'r2'): .4,
+            ('a1', 'b1', 'c1', 'h1', 'i1', 'd1', 'e1', 'f3', 'g3', 'q3', 'r3'): .4,
+
+            ('a2', 'b2', 'c2', 'h2', 'i2', 'd2', 'e2', 'f1', 'g1', 'q1', 'r1'): .2,
+            ('a2', 'b2', 'c2', 'h2', 'i2', 'd2', 'e2', 'f2', 'g2', 'q2', 'r2'): .2,
+            ('a2', 'b2', 'c2', 'h2', 'i2', 'd2', 'e2', 'f3', 'g3', 'q3', 'r3'): .2,
+
+            ('a3', 'b3', 'c3', 'h3', 'i3', 'd3', 'e3', 'f1', 'g1', 'q1', 'r1'): .6,
+            ('a3', 'b3', 'c3', 'h3', 'i3', 'd3', 'e3', 'f2', 'g2', 'q2', 'r2'): .6,
+            ('a3', 'b3', 'c3', 'h3', 'i3', 'd3', 'e3', 'f3', 'g3', 'q3', 'r3'): .6
+        })
+    
+    def test_partial_overlapping_res2(self):
+        self.assertEqual(self.res2.to_dictionary(), {
+            ('a4', 'b4', 'c4', 'h1', 'i1', 'd1', 'e1', 'f1', 'g1', 'q1', 'r1'): .2,
+            ('a5', 'b5', 'c5', 'h1', 'i1', 'd1', 'e1', 'f2', 'g2', 'q2', 'r2'): .5,
+            ('a6', 'b6', 'c6', 'h1', 'i1', 'd1', 'e1', 'f3', 'g3', 'q3', 'r3'): .9,
+
+            ('a4', 'b4', 'c4', 'h2', 'i2', 'd2', 'e2', 'f1', 'g1', 'q1', 'r1'): .2,
+            ('a5', 'b5', 'c5', 'h2', 'i2', 'd2', 'e2', 'f2', 'g2', 'q2', 'r2'): .5,
+            ('a6', 'b6', 'c6', 'h2', 'i2', 'd2', 'e2', 'f3', 'g3', 'q3', 'r3'): .9,
+
+            ('a4', 'b4', 'c4', 'h3', 'i3', 'd3', 'e3', 'f1', 'g1', 'q1', 'r1'): .2,          
+            ('a5', 'b5', 'c5', 'h3', 'i3', 'd3', 'e3', 'f2', 'g2', 'q2', 'r2'): .5,
+            ('a6', 'b6', 'c6', 'h3', 'i3', 'd3', 'e3', 'f3', 'g3', 'q3', 'r3'): .9
+        })
+    
+    def test_check_domains(self):
+        res1_domain = self.res1.get_domain()
+        self.assertEqual(res1_domain, ('A', 'B', 'C', 'H', 'I', 'D', 'E', 'F', 'G', 'Q', 'R'))
+        self.assertEqual(self.res2.get_domain(), res1_domain)
+    
+    def test_disjoint_sets_res1(self):
+        self.assertEqual(self.dis_res1.to_dictionary(), {
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x1', 'y1'): .4,
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x2', 'y2'): .4,
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x3', 'y3'): .4,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x1', 'y1'): .2,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x2', 'y2'): .2,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x3', 'y3'): .2,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x1', 'y1'): .6,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x2', 'y2'): .6,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x3', 'y3'): .6
+        })
+
+    def test_disjoint_sets_res2(self):
+        self.assertEqual(self.dis_res2.to_dictionary(), {
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x1', 'y1'): .8,
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x2', 'y2'): .7,
+            ('h1', 'a1','i1', 'b1', 'd1', 'c1', 'e1', 'x3', 'y3'): .2,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x1', 'y1'): .8,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x2', 'y2'): .7,
+            ('h2', 'a2','i2', 'b2', 'd2', 'c2', 'e2', 'x3', 'y3'): .2,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x1', 'y1'): .8,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x2', 'y2'): .7,
+            ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x3', 'y3'): .2
+        })
+    
+    def test_disjoint_sets_domains(self):
+        self.assertEqual(self.dis_res1.get_domain(), self.dis_res2.get_domain())
+
+    def test_invalid_type(self):
+        with self.assertRaises(AssertionError):
+            self.fs1.cilindrical_extension('fake')
+    
