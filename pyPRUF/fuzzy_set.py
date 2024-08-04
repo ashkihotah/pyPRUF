@@ -84,7 +84,7 @@ class FuzzySet(ABC):
     def apply(self, operator: FuzzyUnaryOperator):
         pass
 
-    @abstractmethod
+    @abstractmethod  
     def extension_principle(self, function: Callable, out_domain: tuple):
         pass
 
@@ -459,18 +459,17 @@ class DiscreteFuzzySet(FuzzySet):
             if new_membership > .0:
                 new_set[element] = new_membership
         return DiscreteFuzzySet(self.get_domain(), new_set)
-    
-    # DA CANCELLARE?
-    # def extension_principle(self, function: Callable, out_domain: tuple) -> FuzzySet: # NON TESTATO
-    #     assert isinstance(function, Callable), "'function' must be a callable function!"
-    #     new_set = {}
-    #     for element, membership in self.__fuzzy_set.items():
-    #         y = function(element)
-    #         if y in new_set:
-    #             new_set[y] = FuzzyLogic.or_fun(new_set[y], membership)
-    #         else:
-    #             new_set[y] = membership
-    #     return DiscreteFuzzySet(out_domain, new_set)
+
+    def extension_principle(self, function: Callable, out_domain: tuple) -> FuzzySet: # NON TESTATO
+        assert isinstance(function, Callable), "'function' must be a callable function!"
+        new_set = {}
+        for element, membership in self.__fuzzy_set.items():
+            y = function(element)
+            if y in new_set:
+                new_set[y] = FuzzyLogic.or_fun(new_set[y], membership)
+            else:
+                new_set[y] = membership
+        return DiscreteFuzzySet(out_domain, new_set)
     
     def cilindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'"
@@ -530,6 +529,24 @@ class DiscreteFuzzySet(FuzzySet):
         for membership in memberships[1:]:
             result = operator(result, membership)
         return result
+    
+    def reorder(self, new_domain: tuple) -> FuzzySet:
+        assert isinstance(new_domain, tuple), "'tuple' must be a tuple representing a permutation of the domain!"
+        assert len(new_domain) == len(self.__domain), "'tuple' must be of the same length as the original domain!"
+        perm = []
+        for var in new_domain:
+            assert var in self.__domain, "'" + str(var) + "' not in the domain!"
+            index = self.__domain.index(var)
+            perm.append(index)
+        
+        new_dict = {}
+        for key, value in self.__fuzzy_set.items():
+            new_elem = []
+            for i in perm:
+                new_elem.append(key[i])
+            new_dict[tuple(new_elem)] = value
+
+        return DiscreteFuzzySet(new_domain, new_dict)
 
     # FINE DEI METODI DA TESTARE
 

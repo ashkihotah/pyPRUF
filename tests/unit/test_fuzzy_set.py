@@ -1080,4 +1080,70 @@ class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
             self.fs1.cilindrical_extension('fake')
+
+class Test_DiscreteFuzzySet_reorder(unittest.TestCase):
+
+    def setUp(self):
+        self.set1 = DiscreteFuzzySet(
+            ('A', 'B', 'C', 'D'), {
+            ('a', 'b', 'c', 'd'): .1,
+            ('e', 'f', 'g', 'h'): .2,
+            ('i', 'l', 'm', 'n'): .3,
+        })
+        self.set2 = DiscreteFuzzySet(
+            ('A', 'B', 'C'), {
+            ('a', 'b', 'c'): .3,
+            ('e', 'f', 'g'): .2,
+            ('i', 'l', 'm'): .1,
+        })
+        self.set3 = DiscreteFuzzySet(
+            ('A', 'B'), {
+            ('a', 'b'): .1,
+            ('e', 'f'): .2,
+            ('i', 'l'): .3,
+        })
+        self.set4 = DiscreteFuzzySet(
+            ('A', ), {
+            ('a', ): .3,
+            ('e', ): .2,
+            ('i', ): .1,
+        })
     
+    def test_single_set_domain(self):
+        res = self.set1.reorder(('C', 'A', 'D', 'B'))
+        self.assertEqual(res.to_dictionary(), {
+            ('c', 'a', 'd', 'b'): .1,
+            ('e', 'g', 'h', 'f'): .2,
+            ('i', 'm', 'n', 'l'): .3,
+        })
+        self.assertEqual(res.get_domain(), ('C', 'A', 'D', 'B'))
+    
+    def test_single_set_domain(self):
+        res = self.set2.reorder(('C', 'A', 'B'))
+        self.assertEqual(res.to_dictionary(), {
+            ('c', 'a', 'b'): .3,
+            ('e', 'g', 'f'): .2,
+            ('i', 'm', 'l'): .1,
+        })
+        self.assertEqual(res.get_domain(), ('C', 'A', 'B'))
+    
+    def test_single_set_domain(self):
+        res = self.set3.reorder(('B', 'A'))
+        self.assertEqual(res.to_dictionary(), {
+            ('b', 'a'): .1,
+            ('f', 'e'): .2,
+            ('l', 'i'): .3,
+        })
+        self.assertEqual(res.get_domain(), ('B', 'A'))
+    
+    def test_invalid_perm(self):
+        with self.assertRaises(AssertionError):
+            self.set4.reorder((5, ))
+    
+    def test_invalid_length(self):
+        with self.assertRaises(AssertionError):
+            self.set1.reorder(('B', 'A'))
+    
+    def test_both_assertions(self):
+        with self.assertRaises(AssertionError):
+            self.set1.reorder(('B', 'A', 5))
