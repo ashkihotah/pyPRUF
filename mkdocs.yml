@@ -1,0 +1,7 @@
+site_name: My Docs
+theme:
+  name: readthedocs
+  highlightjs: true
+nav:
+  - Welcome to MkDocs: index.md
+  - About: about.md
