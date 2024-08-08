@@ -1,7 +1,7 @@
-site_name: My Docs
+site_name: pyPRUF
 theme:
   name: readthedocs
   highlightjs: true
 nav:
-  - Welcome to MkDocs: index.md
+  - Welcome to pyPRUF: index.md
   - About: about.md
