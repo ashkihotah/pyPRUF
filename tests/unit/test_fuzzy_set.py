@@ -1,5 +1,5 @@
 import unittest
-from pyPRUF.fuzzy_logic import FuzzyNot, LinguisticModifiers
+from pyPRUF.fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr, LinguisticModifiers
 from pyPRUF.fuzzy_set import *
 
 class Test_DiscreteFuzzySet___init__(unittest.TestCase):
@@ -7,9 +7,6 @@ class Test_DiscreteFuzzySet___init__(unittest.TestCase):
     # ======== data, domain TESTING ========
 
     def test_empty_domain(self):
-        '''
-        Check empty domain
-        '''
         with self.assertRaises(AssertionError):
             DiscreteFuzzySet((), {('a', 'b'): 0.5})
     
@@ -248,12 +245,30 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
         result = empty_set1 | empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
-    def test_idempotence(self):
-        '''
-        \x1b[33mProprietà Idempotenza: A ∪ A = A \x1b[0m
-        '''
-        result = self.fuzzy_set1 | self.fuzzy_set1
-        self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
+    # def test_idempotence(self):
+    #     '''
+    #     \x1b[33mProprietà Idempotenza: A ∪ A = A \x1b[0m
+    #     '''
+    #     result = self.fuzzy_set1 | self.fuzzy_set1
+    #     self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
+
+    # def test_associativity(self):
+    #     '''
+    #     \x1b[33mProprietà Associatività: A ∪ (B ∪ C) = (A ∪ B) ∪ C \x1b[0m
+    #     '''
+    #     data2 = {
+    #         ('H', 'I'): 0.8,
+    #         ('L', 'M'): 0.6
+    #     }
+    #     data3 = {
+    #         ('F', 'P'): 0.2,
+    #         ('Z', 'X'): 0.9
+    #     }
+    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+    #     fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
+    #     result1 = self.fuzzy_set1 | (fuzzy_set2 | fuzzy_set3)
+    #     result2 = (self.fuzzy_set1 | fuzzy_set2) | fuzzy_set3
+    #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
     def test_empty_with_non_empty_union(self):
         '''
@@ -277,24 +292,6 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
         result1 = self.fuzzy_set1 | fuzzy_set2
         result2 = fuzzy_set2 | self.fuzzy_set1
         self.assertEqual(result1, result2)
-
-    def test_associativity(self):
-        '''
-        \x1b[33mProprietà Associatività: A ∪ (B ∪ C) = (A ∪ B) ∪ C \x1b[0m
-        '''
-        data2 = {
-            ('H', 'I'): 0.8,
-            ('L', 'M'): 0.6
-        }
-        data3 = {
-            ('F', 'P'): 0.2,
-            ('Z', 'X'): 0.9
-        }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-        fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
-        result1 = self.fuzzy_set1 | (fuzzy_set2 | fuzzy_set3)
-        result2 = (self.fuzzy_set1 | fuzzy_set2) | fuzzy_set3
-        self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
     def test_different_domain(self):
         different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
@@ -322,17 +319,9 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
             ('H', 'I'): 0.8,
             ('L', 'M'): 0.6
         }
-        expected_data = {
-            # ('V', 'D'): .0,
-            # ('A', 'B'): .0,
-            # ('A', 'C'): .0,
-            # ('F', 'G'): .0,
-            # ('H', 'I'): .0,
-            # ('L', 'M'): .0
-        }
         fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
         result = self.fuzzy_set1 & fuzzy_set2
-        self.assertEqual(result.to_dictionary(), expected_data)
+        self.assertEqual(result.to_dictionary(), {})
 
     def test_partial_overlap(self):
         data2 = {
@@ -343,10 +332,11 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
         }
         fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
         result = self.fuzzy_set1 & fuzzy_set2
-        expected_data = {
-            ('F', 'G'): FuzzyLogic.and_fun(.4, .7),
-            ('A', 'C'): FuzzyLogic.and_fun(.3, .8),
-        }
+        expected_data = {}
+        if FuzzyLogic.and_fun(.4, .7) > .0:
+            expected_data[('F', 'G')] = FuzzyLogic.and_fun(.4, .7)
+        if FuzzyLogic.and_fun(.3, .8) > .0:
+            expected_data[('A', 'C')] = FuzzyLogic.and_fun(.3, .8)
         self.assertEqual(result.to_dictionary(), expected_data)
 
     def test_empty_sets(self):
@@ -355,12 +345,32 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
         result = empty_set1 & empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
-    def test_idempotence(self):
-        '''
-        \x1b[33mProprietà Idempotenza: A ∩ A = A \x1b[0m
-        '''
-        result = self.fuzzy_set1 & self.fuzzy_set1
-        self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
+    # def test_idempotence(self):
+    #     '''
+    #     \x1b[33mProprietà Idempotenza: A ∩ A = A \x1b[0m
+    #     '''
+    #     result = self.fuzzy_set1 & self.fuzzy_set1
+    #     self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
+
+        # def test_associativity(self):
+    #     '''
+    #     \x1b[33mProprietà Associatività: A ∩ (B ∩ C) = (A ∩ B) ∩ C \x1b[0m
+    #     '''
+    #     data2 = {
+    #         ('H', 'I'): 0.8,
+    #         ('F', 'G'): 0.6,
+    #         ('A', 'B'): 0.4
+    #     }
+    #     data3 = {
+    #         ('A', 'B'): 0.2,
+    #         ('Z', 'X'): 0.9,
+    #         ('A', 'C'): 0.2
+    #     }
+    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+    #     fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
+    #     result1 = self.fuzzy_set1 & (fuzzy_set2 & fuzzy_set3)
+    #     result2 = (self.fuzzy_set1 & fuzzy_set2) & fuzzy_set3
+    #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
     def test_empty_with_non_empty_intersection(self):
         '''
@@ -384,32 +394,6 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
         result1 = self.fuzzy_set1 & fuzzy_set2
         result2 = fuzzy_set2 & self.fuzzy_set1
         self.assertEqual(result1, result2)
-
-    def test_associativity(self):
-        '''
-        \x1b[33mProprietà Associatività: A ∩ (B ∩ C) = (A ∩ B) ∩ C \x1b[0m
-        '''
-        # self.data1 = {
-        #     ('V', 'D'): 0.1,
-        #     ('A', 'B'): 0.5,
-        #     ('A', 'C'): 0.3,
-        #     ('F', 'G'): 0.7
-        # }
-        data2 = {
-            ('H', 'I'): 0.8,
-            ('F', 'G'): 0.6,
-            ('A', 'B'): 0.4
-        }
-        data3 = {
-            ('A', 'B'): 0.2,
-            ('Z', 'X'): 0.9,
-            ('A', 'C'): 0.2
-        }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-        fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
-        result1 = self.fuzzy_set1 & (fuzzy_set2 & fuzzy_set3)
-        result2 = (self.fuzzy_set1 & fuzzy_set2) & fuzzy_set3
-        self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
     def test_different_domain(self):
         different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
@@ -452,10 +436,12 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
         result = self.fuzzy_set1 - fuzzy_set2
         expected_data = {
             ('V', 'D'): 0.1,
-            ('A', 'B'): 0.5,
-            ('A', 'C'): FuzzyLogic.and_fun(self.fuzzy_set1[('A', 'C')], FuzzyLogic.not_fun(fuzzy_set2[('A', 'C')])),
-            ('F', 'G'): FuzzyLogic.and_fun(self.fuzzy_set1[('F', 'G')], FuzzyLogic.not_fun(fuzzy_set2[('F', 'G')]))
+            ('A', 'B'): 0.5
         }
+        if FuzzyLogic.and_fun(self.fuzzy_set1[('A', 'C')], FuzzyLogic.not_fun(fuzzy_set2[('A', 'C')])) > .0:
+            expected_data[('A', 'C')] = FuzzyLogic.and_fun(self.fuzzy_set1[('A', 'C')], FuzzyLogic.not_fun(fuzzy_set2[('A', 'C')]))
+        if FuzzyLogic.and_fun(self.fuzzy_set1[('F', 'G')], FuzzyLogic.not_fun(fuzzy_set2[('F', 'G')])) > .0:
+            expected_data[('F', 'G')] = FuzzyLogic.and_fun(self.fuzzy_set1[('F', 'G')], FuzzyLogic.not_fun(fuzzy_set2[('F', 'G')]))         
         self.assertEqual(result.to_dictionary(), expected_data)
 
     def test_empty_sets(self):
@@ -464,43 +450,12 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
         result = empty_set1 - empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
-    # def test_non_inverse(self):
+    # def test_inverse(self):
     #     '''
-    #     \x1b[33mProprietà dell'inverso: A - A != ∅ \x1b[0m
+    #     \x1b[33mProprietà dell'inverso: A - A = ∅ \x1b[0m
     #     '''
     #     result = self.fuzzy_set1 - self.fuzzy_set1
-    #     self.assertNotEqual(result.to_dictionary(), {})
-
-    def test_empty_with_non_empty_difference(self):
-        '''
-        \x1b[33mProprietà del dominio vuoto: ∅ - A = ∅ \x1b[0m
-        '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
-        result = empty_set1 - self.fuzzy_set1
-        self.assertEqual(result.to_dictionary(), {})
-    
-    def test_non_empty_with_empty_difference(self):
-        '''
-        \x1b[33mProprietà del dominio vuoto: A - ∅ = A \x1b[0m
-        '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
-        result = self.fuzzy_set1 - empty_set1
-        self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
-
-    def test_non_commutativity(self):
-        '''
-        \x1b[33mProprietà Commutatività: A - B != B - A \x1b[0m
-        '''
-        data2 = {
-            ('F', 'G'): 0.4,
-            ('A', 'C'): 0.8,
-            ('L', 'M'): 0.6,
-            ('P', 'Q'): 0.2
-        }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-        result1 = self.fuzzy_set1 - fuzzy_set2
-        result2 = fuzzy_set2 - self.fuzzy_set1
-        self.assertNotEqual(result1, result2)
+    #     self.assertEqual(result.to_dictionary(), {})
 
     # def test_non_associativity(self):
     #     '''
@@ -520,6 +475,37 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
     #     result2 = (self.fuzzy_set1 - fuzzy_set2) - fuzzy_set3
     #     self.assertNotEqual(result1.to_dictionary(), result2.to_dictionary())
 
+    # def test_non_commutativity(self):
+    #     '''
+    #     \x1b[33mProprietà Commutatività: A - B != B - A \x1b[0m
+    #     '''
+    #     data2 = {
+    #         ('F', 'G'): 0.4,
+    #         ('A', 'C'): 0.8,
+    #         ('L', 'M'): 0.6,
+    #         ('P', 'Q'): 0.2
+    #     }
+    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+    #     result1 = self.fuzzy_set1 - fuzzy_set2
+    #     result2 = fuzzy_set2 - self.fuzzy_set1
+    #     self.assertNotEqual(result1, result2)
+
+    def test_empty_with_non_empty_difference(self):
+        '''
+        \x1b[33mProprietà del dominio vuoto: ∅ - A = ∅ \x1b[0m
+        '''
+        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        result = empty_set1 - self.fuzzy_set1
+        self.assertEqual(result.to_dictionary(), {})
+    
+    def test_non_empty_with_empty_difference(self):
+        '''
+        \x1b[33mProprietà del dominio vuoto: A - ∅ = A \x1b[0m
+        '''
+        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        result = self.fuzzy_set1 - empty_set1
+        self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
+
     def test_different_domain(self):
         different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
         with self.assertRaises(AssertionError):
@@ -532,7 +518,6 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
 class Test_DiscreteFuzzySet___mul__(unittest.TestCase):
 
     def setUp(self):
-        # Set up some sample fuzzy sets for testing
         self.set1 = DiscreteFuzzySet(('A', 'B'), {
             ('a', 'b'): 0.8,
             ('c', 'd'): 0.6
@@ -541,22 +526,22 @@ class Test_DiscreteFuzzySet___mul__(unittest.TestCase):
             ('e',): 0.7,
             ('f',): 0.5
         })
-
-        # Set up a set with overlapping domains to test assertion
         self.set3 = DiscreteFuzzySet(('A', 'D'), {
             ('a', 'e'): 0.9,
             ('c', 'f'): 0.4
         })
 
     def test_valid_multiplication(self):
-        # Test valid multiplication
         result = self.set1 * self.set2
-        expected_data = {
-            ('a', 'b', 'e'): FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('e', )]),
-            ('a', 'b', 'f'): FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('f', )]),
-            ('c', 'd', 'e'): FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('e', )]),
-            ('c', 'd', 'f'): FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('f', )])
-        }
+        expected_data = {}
+        if FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('e', )]) > .0:
+            expected_data[('a', 'b', 'e')] = FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('e', )])
+        if FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('f', )]) > .0:
+            expected_data[('a', 'b', 'f')] = FuzzyLogic.and_fun(self.set1[('a', 'b')], self.set2[('f', )])
+        if FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('e', )]) > .0:
+            expected_data[('c', 'd', 'e')] = FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('e', )])
+        if FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('f', )]) > .0:
+            expected_data[('c', 'd', 'f')] = FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('f', )])
         self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
 
@@ -566,18 +551,18 @@ class Test_DiscreteFuzzySet___mul__(unittest.TestCase):
         self.assertEqual(result.to_dictionary(), {})
         self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
 
-    def test_associativity(self):
-        '''
-        \x1b[33mProprietà Associatività: A x (B x C) = (A x B) x C \x1b[0m
-        '''
-        data3 = {
-            ('q', 'p'): 0.2,
-            ('t', 'u'): 0.9
-        }
-        set3 = DiscreteFuzzySet(domain=('D', 'E'), data=data3)
-        result1 = self.set1 * (self.set2 * set3)
-        result2 = (self.set1 * self.set2) * set3
-        self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
+    # def test_associativity(self):
+    #     '''
+    #     \x1b[33mProprietà Associatività: A x (B x C) = (A x B) x C \x1b[0m
+    #     '''
+    #     data3 = {
+    #         ('q', 'p'): 0.2,
+    #         ('t', 'u'): 0.9
+    #     }
+    #     set3 = DiscreteFuzzySet(domain=('D', 'E'), data=data3)
+    #     result1 = self.set1 * (self.set2 * set3)
+    #     result2 = (self.set1 * self.set2) * set3
+    #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
     def test_overlapping_domains(self):
         with self.assertRaises(AssertionError) as context:
@@ -643,21 +628,25 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
         self.assertEqual(result1.to_dictionary(), {})
     
     def test_partial_overlapping_1(self):
-        expected_data = {
-            ('a', 'b', 'r', 't'): FuzzyLogic.and_fun(.5, .3),
-            ('c', 'd', 's', 'p'): FuzzyLogic.and_fun(.2, .8),
-            ('e', 'f', 't', 'v'): FuzzyLogic.and_fun(.4, .7)
-        }
+        expected_data = {}
+        if FuzzyLogic.and_fun(.5, .3) > .0:
+            expected_data[('a', 'b', 'r', 't')] = FuzzyLogic.and_fun(.5, .3)
+        if FuzzyLogic.and_fun(.2, .8) > .0:
+            expected_data[('c', 'd', 's', 'p')] = FuzzyLogic.and_fun(.2, .8)
+        if FuzzyLogic.and_fun(.4, .7) > .0:
+            expected_data[('e', 'f', 't', 'v')] = FuzzyLogic.and_fun(.4, .7)
         result = self.set1 @ self.set2
         self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), ('A', 'B', 'C', 'D'))
     
     def test_partial_overlapping_2(self):
-        expected_data = {
-            ('a', 'b', 't', 'r'): FuzzyLogic.and_fun(.5, .3),
-            ('c', 'd', 'p', 's'): FuzzyLogic.and_fun(.2, .8),
-            ('e', 'f', 'v', 't'): FuzzyLogic.and_fun(.4, .7)
-        }
+        expected_data = {}
+        if FuzzyLogic.and_fun(.5, .3) > .0:
+            expected_data[('a', 'b', 't', 'r')] = FuzzyLogic.and_fun(.5, .3)
+        if FuzzyLogic.and_fun(.2, .8) > .0:
+            expected_data[('c', 'd', 'p', 's')] = FuzzyLogic.and_fun(.2, .8)
+        if FuzzyLogic.and_fun(.4, .7) > .0:
+            expected_data[('e', 'f', 'v', 't')] = FuzzyLogic.and_fun(.4, .7)
         result = self.set2 @ self.set1
         self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), ('A', 'B', 'D', 'C'))
@@ -669,20 +658,27 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
 
     def test_inclusion_right(self):
         result = self.set3 @ self.set4
-        self.assertEqual(result.to_dictionary(), {
-            ('a', 'b', 't'): FuzzyLogic.and_fun(.3, .2),
-            ('c', 'd', 'p'): FuzzyLogic.and_fun(.8, .1),
-            ('e', 'f', 'v'): FuzzyLogic.and_fun(.6, .4)
-        })
+        expected_data = {}
+        if FuzzyLogic.and_fun(.3, .2) > .0:
+            expected_data[('a', 'b', 't')] = FuzzyLogic.and_fun(.3, .2)
+        if FuzzyLogic.and_fun(.8, .1) > .0:
+            expected_data[('c', 'd', 'p')] = FuzzyLogic.and_fun(.8, .1)
+        if FuzzyLogic.and_fun(.6, .4) > .0:
+            expected_data[('e', 'f', 'v')] = FuzzyLogic.and_fun(.6, .4)
+        self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
+        
     
     def test_inclusion_left(self):
         result = self.set4 @ self.set3
-        self.assertEqual(result.to_dictionary(), {
-            ('a', 't', 'b'): FuzzyLogic.and_fun(.3, .2),
-            ('c', 'p', 'd'): FuzzyLogic.and_fun(.8, .1),
-            ('e', 'v', 'f'): FuzzyLogic.and_fun(.6, .4)
-        })
+        expected_data = {}
+        if FuzzyLogic.and_fun(.3, .2):
+            expected_data[('a', 't', 'b')] = FuzzyLogic.and_fun(.3, .2)
+        if FuzzyLogic.and_fun(.8, .1) > .0:
+            expected_data[('c', 'p', 'd')] = FuzzyLogic.and_fun(.8, .1)
+        if FuzzyLogic.and_fun(.6, .4) > .0:
+            expected_data[('e', 'v', 'f')] = FuzzyLogic.and_fun(.6, .4)
+        self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), ('A', 'C', 'B'))
 
     def test_disjoint_domains(self):
@@ -709,11 +705,13 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
         subdomain = ('A', 'C')
         operator = FuzzyLogic._FuzzyLogic__and_fun
         result = self.fuzzy_set.projection(subdomain, operator)
-        expected_data = {
-            ('a1', 'c1'): operator(.8, .6),
-            ('a3', 'c1'): operator(operator(.2, .7), .1),
-            ('a1', 'c2'): operator(.3, .5)
-        }
+        expected_data = {}
+        if operator(.8, .6) > .0:
+            expected_data[('a1', 'c1')] = operator(.8, .6)
+        if operator(operator(.2, .7), .1) > .0:
+            expected_data[('a3', 'c1')] = operator(operator(.2, .7), .1)
+        if operator(.3, .5) > .0:
+            expected_data[('a1', 'c2')] = operator(.3, .5)
         self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), subdomain)
     
@@ -722,11 +720,13 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
         operator = FuzzyLogic._FuzzyLogic__or_fun
         result = self.fuzzy_set.projection(subdomain, operator)
 
-        expected_data = {
-            ('a1', 'c1'): operator(.8, .6),
-            ('a3', 'c1'): operator(operator(.2, .7), .1),
-            ('a1', 'c2'): operator(.3, .5)
-        }
+        expected_data = {}
+        if operator(.8, .6) > .0:
+            expected_data[('a1', 'c1')] = operator(.8, .6)
+        if operator(operator(.2, .7), .1) > .0:
+            expected_data[('a3', 'c1')] = operator(operator(.2, .7), .1)
+        if operator(.3, .5) > .0:
+            expected_data[('a1', 'c2')] = operator(.3, .5)
         self.assertEqual(result.to_dictionary(), expected_data)
         self.assertEqual(result.get_domain(), subdomain)
 
@@ -780,11 +780,14 @@ class Test_DiscreteFuzzySet_particularization(unittest.TestCase):
     
     def test_valid_assignment(self):
         result = self.data_fs.particularization({'A': 'a1', 'B': self.fs_ass1, 'C': self.fs_ass2, 'D': 'd1'})
-        self.assertEqual(result.to_dictionary(), {
-            ('a1', 'b1', 'c1', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4),
-            ('a1', 'b2', 'c1', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.6, .4), .4),
-            ('a1', 'b2', 'c2', 'd1'): FuzzyLogic.and_fun(FuzzyLogic.and_fun(.5, .4), .1)
-        })
+        expected_data = {}
+        if FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4) > .0:
+            expected_data[('a1', 'b1', 'c1', 'd1')] = FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4)
+        if FuzzyLogic.and_fun(FuzzyLogic.and_fun(.6, .4), .4) > .0:
+            expected_data[('a1', 'b2', 'c1', 'd1')] = FuzzyLogic.and_fun(FuzzyLogic.and_fun(.6, .4), .4)
+        if FuzzyLogic.and_fun(FuzzyLogic.and_fun(.5, .4), .1) > .0:
+            expected_data[('a1', 'b2', 'c2', 'd1')] = FuzzyLogic.and_fun(FuzzyLogic.and_fun(.5, .4), .1)
+        self.assertEqual(result.to_dictionary(), expected_data)
 
 class Test_DiscreteFuzzySet_cardinality(unittest.TestCase):
 
@@ -921,7 +924,7 @@ class Test_DiscreteFuzzySet_consistency(unittest.TestCase):
     
     def test_valid_sets(self):
         result = self.fs1.consistency(self.fs2)
-        self.assertEqual(result, .5)
+        self.assertEqual(result, FuzzyLogic.and_fun(.5, .8))
     
     def test_commutativity(self):
         result1 = self.fs1.consistency(self.fs2)

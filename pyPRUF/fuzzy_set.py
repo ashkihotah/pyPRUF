@@ -237,7 +237,7 @@ class DiscreteFuzzySet(FuzzySet):
 
     def __eq__(self, set2: FuzzySet) -> bool:
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        return set2.__fuzzy_set == self.__fuzzy_set
+        return set2.__fuzzy_set == self.__fuzzy_set and set2.get_domain() == self.get_domain()
 
     def __or__(self, set2: FuzzySet) -> FuzzySet: # union: |, |=
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
@@ -245,7 +245,9 @@ class DiscreteFuzzySet(FuzzySet):
 
         new_set = set2.to_dictionary()
         for element, membership1 in self.__fuzzy_set.items():
-            new_set[element] = FuzzyLogic.or_fun(membership1, set2[element])
+            new_membership = FuzzyLogic.or_fun(membership1, set2[element])
+            if new_membership > .0:
+                new_set[element] = new_membership
         fs = DiscreteFuzzySet(self.get_domain(), new_set)
         return fs
     
@@ -349,6 +351,7 @@ class DiscreteFuzzySet(FuzzySet):
             indexes.append(domain.index(var))
 
         new_set = {}
+        to_remove = set()
         for element, membership in self.__fuzzy_set.items():
             new_tuple = []
             for index in indexes:
@@ -359,6 +362,12 @@ class DiscreteFuzzySet(FuzzySet):
                 new_set[new_tuple] = operator(new_set[new_tuple], membership)
             else:
                 new_set[new_tuple] = membership
+
+            if new_set[new_tuple] == .0:
+                to_remove.add(new_tuple)
+
+        for t in to_remove:
+            del new_set[t]
 
         fs = DiscreteFuzzySet(subdomain, new_set)
         return fs

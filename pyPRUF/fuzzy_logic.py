@@ -3,7 +3,7 @@ from decimal import Decimal, getcontext
 from enum import Enum, member
 import math
 
-getcontext().prec = 4
+# getcontext().prec = 4
 
 class FuzzyOperator(Enum):
 
@@ -28,13 +28,13 @@ class FuzzyAnd(FuzzyBinaryOperator):
 
     @member
     def LUKASIEWICZ(a: float, b: float) -> float:
-        return max(float(Decimal(a + b) - Decimal(1.0)), 0.0)
-        # return max(a + b - 1.0, 0.0)
+        # return max(float(Decimal(a + b) - Decimal(1.0)), 0.0)
+        return max(a + b - 1.0, 0.0)
     
     @member
     def ALGEBRAIC_PRODUCT(a: float, b: float) -> float:
-        return float(Decimal(a) * Decimal(b))
-        # return a * b
+        # return float(Decimal(a) * Decimal(b))
+        return a * b
     
     @member
     def DRASTIC_PRODUCT(a: float, b: float) -> float:
@@ -51,18 +51,18 @@ class FuzzyOr(FuzzyBinaryOperator):
     MAX = max
 
     @member
-    def LUKASIEWICZ(a: float, b: float) -> float:
+    def LUKASIEWICZ(a: float, b: float) -> float: # sempre > .0
         return min(a + b, 1.0)
     
     @member
-    def ALGEBRAIC_SUM(a: float, b: float) -> float:
-        return float(Decimal(a + b) - Decimal(a) * Decimal(b))
-        # return a + b - a * b
+    def ALGEBRAIC_SUM(a: float, b: float) -> float: # sempre > .0
+        # return float(Decimal(a + b) - Decimal(a) * Decimal(b))
+        return a + b - a * b
     
     @member
     def DRASTIC_SUM(a: float, b: float) -> float:
-        if 1.0 != a and 1.0 != b:
-            return 0.0
+        if .0 != a and .0 != b:
+            return 1.0
         return max(a, b)
 
     def __call__(self, a: float, b: float) -> float:
@@ -74,8 +74,8 @@ class FuzzyNot(FuzzyUnaryOperator):
     
     @member
     def STANDARD(value: float) -> float:
-        return float(Decimal(1.0) - Decimal(value))
-        # return 1.0 - value
+        # return float(Decimal(1.0) - Decimal(value))
+        return 1.0 - value
     
     @member
     def COSINE(value: float) -> float:
@@ -104,22 +104,22 @@ class FuzzyLogic():
 
     def set_and_fun(and_fun: FuzzyAnd) -> None:
         assert isinstance(and_fun, FuzzyAnd), "'and_fun' must be of type 'FuzzyAnd'!"
-        __and_fun = and_fun
+        FuzzyLogic.__and_fun = and_fun
 
     def set_or_fun(or_fun: FuzzyOr) -> None:
         assert isinstance(or_fun, FuzzyOr), "'or_fun' must be of type 'FuzzyOr'!"
-        __or_fun = or_fun
+        FuzzyLogic.__or_fun = or_fun
         
     def set_not_fun(not_fun: FuzzyNot) -> None:
         assert isinstance(not_fun, FuzzyNot), "'not_fun' must be of type 'FuzzyNot'!"
-        __not_fun = not_fun
+        FuzzyLogic.__not_fun = not_fun
 
 class LinguisticModifiers(FuzzyUnaryOperator):
 
     @member
     def VERY(value: float) -> float:
-        return float(Decimal(value) * Decimal(value))
-        # return value * value
+        # return float(Decimal(value) * Decimal(value))
+        return value * value
     
     @member
     def MORE_OR_LESS(value: float) -> float:
