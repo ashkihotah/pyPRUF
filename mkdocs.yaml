@@ -1,4 +1,6 @@
 site_name: pyPRUF
+repo_url: https://github.com/ashkihotah/pyPRUF
+site_author: Nicolò Resta
 theme:
   name: readthedocs
   highlightjs: true
