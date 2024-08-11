@@ -8,7 +8,7 @@ if __name__ == "__main__":
     A = DiscreteFuzzySet(('D1', 'D2'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
     B = DiscreteFuzzySet(('D1', 'D2'), {(2, 'val4'): 0.1, ('val3', 4.4): 0.5, ('val1', 3.4): 0.7})
     C = DiscreteFuzzySet(('D1', ), {(2,): 0.1, ('val3',): 0.5})
-    D = DiscreteFuzzySet(('n', ), {(0, ): .0, (1, ): .0, (2, ): 0.2, (3, ): 0.4, (4, ): 0.6, (5, ): 0.8})
+    D = DiscreteFuzzySet(('n', ), {(0, ): .1, (1, ): .2, (2, ): 0.2, (3, ): 0.4, (4, ): 0.6, (5, ): 0.8})
     not_D = ~D
     E = DiscreteFuzzySet(('D1', 'D3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
     F = DiscreteFuzzySet(('D6', 'D3'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
@@ -53,6 +53,19 @@ if __name__ == "__main__":
     A.rename_domain({'D1': 'X1', 'D2': 'X2'})
     print(A.get_domain())
     print(A)
+
+    def example_function(element):
+        if element == ('a', 'b'):
+            return ('c', )
+        elif element == ('c', 'd'):
+            return ('c', )
+        elif element == ('e', 'f'):
+            return ('d', )
+    
+    original_set = DiscreteFuzzySet(('x', 'y'), {('a', 'b'): 0.5, ('c', 'd'): 0.8, ('e', 'f'): 0.4})
+    image_set = original_set.image(example_function, ('z',))
+    print(image_set.to_dictionary())
+    print(image_set.get_domain())
 
     end_time = time.time()
     elapsed_time = end_time - start_time
