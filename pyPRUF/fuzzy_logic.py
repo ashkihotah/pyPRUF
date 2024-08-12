@@ -12,10 +12,11 @@ class FuzzyOperator(Enum):
     and returns another membership value.
 
     This class is an enumeration (Enum) that requires derived classes
-    to implement the __call__ method, which should return a float.
+    to implement the __call__() method, which should return a float.
     In this way, it is possible to provide for each fuzzy operator,
-    several implementations (or functions) that will correspond
-    to the values of the Enum.
+    several implementations (or truth functions) that will correspond
+    to the values of the Enum and call them all together with
+    the __call__() method by using its operator '()'.
 
     This is useful in fuzzy logic where operators, such
     as fuzzy AND, OR, and NOT, have many truth functions such as
@@ -84,14 +85,55 @@ class FuzzyBinaryOperator(FuzzyOperator):
 class FuzzyAnd(FuzzyBinaryOperator):
     """
     A class that defines the AND fuzzy binary operator
-    and its truth functions by extending the
+    and its truth functions, or t-norms, inheriting from
     FuzzyBinaryOperator Enum class.
 
-    Currently FuzzyAnd truth functions implemented are:
-    1. MIN: The standard AND truth function.
-    2. LUKASIEWICZ: The Lukasiewicz AND truth function.
-    3. ALGEBRAIC_PRODUCT: the Algebraic Product AND truth function.
-    4. DRASTIC_PRODUCT: the Drastic Product AND truth function.
+    This class, currently, includes common t-norms, or AND truth functions,
+    such as the minimum, Łukasiewicz, algebraic product, and drastic product.
+
+    Attributes
+    ----------
+    MIN : function
+        A static method representing the minimum t-norm, which is the most common fuzzy 'AND' operation.
+    LUKASIEWICZ : function
+        A static method implementing the Łukasiewicz t-norm, which is defined as `max(a + b - 1, 0)`.
+    ALGEBRAIC_PRODUCT : function
+        A static method implementing the algebraic product t-norm, defined as `a * b`.
+    DRASTIC_PRODUCT : function
+        A static method implementing the drastic product t-norm, which returns 0 unless one of the values is 1.
+
+    Methods
+    -------
+    __call__(a: float, b: float) -> float\n
+        Apply the selected fuzzy 'AND' operation to the inputs `a` and `b`.
+
+    :param a: The first membership value in the fuzzy 'AND' operation.
+    :type a: float
+    :param b: The second membership value in the fuzzy 'AND' operation.
+    :type b: float
+
+    :raises AssertionError: If `a` or `b` are not floats or are not within the range [0, 1].
+
+    :return: The result of the fuzzy 'AND' operation using the selected t-norm.
+    :rtype: float
+
+    :example:
+
+    >>> result = FuzzyAnd.MIN(0.7, 0.8)
+    >>> print(result)
+    0.7
+
+    >>> result = FuzzyAnd.LUKASIEWICZ(0.7, 0.5)
+    >>> print(result)
+    0.2
+
+    >>> result = FuzzyAnd.ALGEBRAIC_PRODUCT(0.7, 0.8)
+    >>> print(result)
+    0.56
+
+    >>> result = FuzzyAnd.DRASTIC_PRODUCT(0.7, 0.8)
+    >>> print(result)
+    0.0
     """
 
     MIN = min
@@ -159,15 +201,52 @@ class FuzzyAnd(FuzzyBinaryOperator):
 class FuzzyOr(FuzzyBinaryOperator):
     """
     A class that defines the OR fuzzy binary operator
-    and its truth functions by extending the
+    and its truth functions by inheriting from
     FuzzyBinaryOperator Enum class.
 
-    Currently FuzzyAnd truth functions implemented are:
-    1. MAX: returns max(a, b)
-    2. LUKASIEWICZ: returns min(a + b, 1.0).
-    3. ALGEBRAIC_SUM: returns a + b - a * b.
-    4. DRASTIC_SUM: returns 1.0 if .0 != a and .0 != b
-        and max(a, b) otherwise.
+    This class, currently, includes common t-conorms such as the maximum, 
+    Łukasiewicz, algebraic sum, and drastic sum.
+
+    Attributes
+    ----------
+    MAX : function
+        A static method representing the maximum t-conorm, which is the most common fuzzy 'OR' operation.
+    LUKASIEWICZ : function
+        A static method implementing the Łukasiewicz t-conorm, defined as `min(a + b, 1.0)`.
+    ALGEBRAIC_SUM : function
+        A static method implementing the algebraic sum t-conorm, defined as `a + b - a * b`.
+    DRASTIC_SUM : function
+        A static method implementing the drastic sum t-conorm, which returns 1.0 unless one of the values is 0.
+
+    Methods
+    -------
+    __call__(a: float, b: float) -> float
+        Apply the selected fuzzy 'OR' operation to the inputs `a` and `b`.
+
+    :param float a: The first membership value in the fuzzy 'OR' operation.
+    :param float b: The second membership value in the fuzzy 'OR' operation.
+
+    :raises AssertionError: If `a` or `b` are not floats or are not within the range [0, 1].
+
+    :returns: The result of the fuzzy 'OR' operation using the selected t-conorm.
+    :rtype: float
+
+    Example:
+    >>> result = FuzzyOr.MAX(0.3, 0.8)
+    >>> print(result)
+    0.8
+
+    >>> result = FuzzyOr.LUKASIEWICZ(0.7, 0.5)
+    >>> print(result)
+    1.0
+
+    >>> result = FuzzyOr.ALGEBRAIC_SUM(0.3, 0.8)
+    >>> print(result)
+    0.86
+
+    >>> result = FuzzyOr.DRASTIC_SUM(0.0, 0.8)
+    >>> print(result)
+    0.8
     """
 
     MAX = max
@@ -234,12 +313,40 @@ class FuzzyOr(FuzzyBinaryOperator):
 class FuzzyNot(FuzzyUnaryOperator):
     """
     A class that defines the NOT fuzzy binary operator
-    and its truth functions by extending the
+    and its truth functions inheriting from
     FuzzyUnaryOperator Enum class.
 
-    Currently FuzzyAnd truth functions implemented are:
-    1. STANDARD: returns 1.0 - value.
-    2. COSINE: returns (1.0 + math.cos(math.pi * value)) / 2.0.
+    The `FuzzyNot` class provides various methods to perform fuzzy 'NOT' operations, which are used to 
+    invert the membership values of fuzzy sets. This class includes common operations such as the standard 
+    negation and cosine-based negation.
+
+    Attributes
+    ----------
+    STANDARD : function
+        A static method representing the standard negation, defined as `1.0 - value`.
+    COSINE : function
+        A static method implementing cosine-based negation, defined as `(1.0 + cos(π * value)) / 2.0`.
+
+    Methods
+    -------
+    __call__(a: float) -> float
+        Apply the selected fuzzy 'NOT' operation to the input `a`.
+
+    :param float a: The membership value to be negated in the fuzzy 'NOT' operation.
+
+    :raises AssertionError: If `a` is not a float or is not within the range [0, 1].
+
+    :returns: The result of the fuzzy 'NOT' operation.
+    :rtype: float
+
+    Example:
+    >>> result = FuzzyNot.STANDARD(0.3)
+    >>> print(result)
+    0.7
+
+    >>> result = FuzzyNot.COSINE(0.3)
+    >>> print(result)
+    0.9045084971874737
     """
     
     @member
@@ -288,9 +395,15 @@ class FuzzyNot(FuzzyUnaryOperator):
 
 class FuzzyLogic():
     """
-    A static class that encapsulates and handles all
-    possible truth functions for fuzzy AND, OR and NOT operations
-    that make up the fuzzy logic.
+    A static class that encapsulates and manages all possible truth functions 
+    for fuzzy AND, OR, and NOT operations within fuzzy logic.
+
+    The `FuzzyLogic` class provides static methods to perform fuzzy logical operations, 
+    such as AND, OR, and NOT, by utilizing configurable truth functions. These functions 
+    are used in the `DiscreteFuzzySet` class to perform operations involving fuzzy logic.
+
+    By using this class, it is possible to change the behavior of the `DiscreteFuzzySet` 
+    class by altering the current truth functions for the fuzzy AND, OR, and NOT operations.
     """
 
     __and_fun: FuzzyAnd = FuzzyAnd.MIN
@@ -384,15 +497,43 @@ class FuzzyLogic():
 class LinguisticModifiers(FuzzyUnaryOperator):
     """
     A class that defines the linguistic modifiers
-    by extending the FuzzyUnaryOperator Enum class.
+    inheriting from FuzzyUnaryOperator Enum class.
     A linguistic modifier is a function that takes
     a membership value and returns a modified
     membership value according to a linguistic
     semantic.
 
-    Currently LinguisticModifiers implemented are:
-    1. VERY: returns the square power of the value in input.
-    2. COSINE: returns the square root of the value in input.
+    The `LinguisticModifiers` class provides various methods to apply linguistic modifiers to 
+    fuzzy sets, which adjust the degree of membership in a fuzzy set. This class includes common 
+    modifiers such as 'VERY' (which intensifies the membership) and 'MORE_OR_LESS' (which softens the membership).
+
+    Attributes
+    ----------
+    VERY : function
+        A static method representing the 'VERY' linguistic modifier, defined as `value * value`.
+    MORE_OR_LESS : function
+        A static method representing the 'MORE_OR_LESS' linguistic modifier, defined as `sqrt(value)`.
+
+    Methods
+    -------
+    __call__(a: float) -> float
+        Apply the selected linguistic modifier to the input `a`.
+
+    :param float a: The membership value to be modified using the selected linguistic modifier.
+
+    :raises AssertionError: If `a` is not a float or is not within the range [0, 1].
+
+    :returns: The result of applying the linguistic modifier to the input value.
+    :rtype: float
+
+    Example:
+    >>> result = LinguisticModifiers.VERY(0.7)
+    >>> print(result)
+    0.49
+
+    >>> result = LinguisticModifiers.MORE_OR_LESS(0.49)
+    >>> print(result)
+    0.7
     """
 
     @member

@@ -7,6 +7,16 @@ from pyPRUF.fuzzy_logic import FuzzyBinaryOperator, FuzzyLogic, FuzzyUnaryOperat
 from pyPRUF.membership_functions import MembershipFunction
 
 class FuzzySet(ABC):
+
+    """
+    Abstract Base Class for representing a fuzzy set.
+
+    A fuzzy set is a mathematical representation of a set where each
+    element has a degree of membership ranging between 0 and 1.
+    This class provides a framework for creating and managing fuzzy sets.
+
+    Subclasses of `FuzzySet` must implement the required methods defined by the abstract base class.
+    """
     
     @abstractmethod
     def __getitem__(self, element) -> float: # membership: []
@@ -93,6 +103,19 @@ class FuzzySet(ABC):
         pass
 
 class ContinuousFuzzySet(FuzzySet):
+    """
+    A class representing a continuous fuzzy set,
+    inheriting from `FuzzySet`.
+
+    The `ContinuousFuzzySet` class is designed to handle
+    fuzzy sets where their domain is continuous
+    (such as Fuzzy Numbers), rather than discrete,
+    allowing for smooth transitions between membership values.
+
+    It is defined by a `MembershipFunction` and a domain that
+    together fully characterize the continous fuzzy set. 
+    """
+
     def __init__(self, domain: tuple, mf: MembershipFunction):
         assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
         assert isinstance(mf, MembershipFunction), "'mf' must be of type 'MembershipFunction'!"
@@ -197,7 +220,8 @@ class DiscreteFuzzySet(FuzzySet):
     def __init__(self, domain: Tuple[str] = None, data = None):
         """
         Constructs the DiscreteFuzzySet object with the domain
-        and data given in input.
+        and data given in input. This constructor can initialize
+        the fuzzy set from either a pandas DataFrame or a dictionary.
 
         :param tuple domain: A non-empty tuple of strings
                             without duplicates representing the domain of
@@ -220,10 +244,29 @@ class DiscreteFuzzySet(FuzzySet):
                     All memberships value in data must be floats in the interval
                     [0, 1]. \n
         If data is a DataFrame, it is not required to also specify the domain
-        parameter. If it is done anyway, it will be ignored. If data is a tuple
+        parameter. If it is done anyway, it will be ignored and the domain will
+        be inferred from the DataFrame columns names. If data is a tuple
         of strings or None, it is required to specify also the domain.
 
         :raises AssertionError: If one of the preceding assumptions is breached.
+
+        Example:
+            >>> A = DiscreteFuzzySet(('D1', 'D2'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
+            >>> print(A.to_dictionary())
+            {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9}
+            >>> print(A.get_domain())
+            ('D1', 'D2')
+
+            >>> df = pd.DataFrame({
+            ...     'x': [1, 2],
+            ...     'y': [3, 4],
+            ...     'mu': [0.5, 0.7]
+            ... })
+            >>> fuzzy_set = FuzzySet(data=df)
+            >>> print(fuzzy_set.get_domain())
+            ('x', 'y')
+            >>> print(fuzzy_set.to_dictionary())
+            {(1, 3): 0.5, (2, 4): 0.7}
         """
         if isinstance(data, DataFrame):
             dict_relation = {}
