@@ -3,8 +3,22 @@ repo_url: https://github.com/ashkihotah/pyPRUF
 site_author: Nicolò Resta
 theme:
   name: readthedocs
-  highlightjs: true
+  # highlightjs: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # docstring_style: "google"
+            # sort: source
+            show_source: true
+            show_root_heading: true
+            separate_members: true
+
 nav:
   - Welcome to pyPRUF: index.md
   - User Guide: user_guide.md
+  - API: api.md
   - About: about.md
