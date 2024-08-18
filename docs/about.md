@@ -1,60 +1,27 @@
-# Fonti vires venit novissima quod
+# About Me
 
-## Ante elisa postquam strepitu
+Hello! I'm Nicolò Resta, the creator and maintainer of pyPRUF. I am a passionate software developer with a deep interest in computational intelligence and AI research fields. Through my work on pyPRUF, I aim to provide a reliable, efficient and easy to use tool for developers to allow working on approximate reasoning with fuzzy theory.
 
-Lorem markdownum **quem exstinctos Troia** iugeribus Hectoris bis voce,
-celeberrima cognita modo Peleus ac Triptolemus scopulos. Sibi recipit dignam
-potiere putat mihi, inpune Iris decor remisit ipse. Esse locum. Vara auras
-dilectaque adsuetos ut quarto et inquit errant ereptas.
+## Background
 
-Vis adicit, aevum vota silvae saxa fati, accipimus Crocon, reseminet tepente
-limina tamen ut Medusae a. Torva edidit, sine, antiqui, ambiguum, vina a **nobis
-sensisse**; furtim, sed. Clara erat *Alcyone tauros*. Inmergere sub veluti
-habenas tamquam, **frater** manus fuit dispar. Procul pressa amisso potitur
-tanti quidem lucida quaerit nostra Haec durum vices illo Dianae.
+I have a __[mention your relevant experience, e.g., degree in Computer Science, years of experience in software development, etc.]__. Over the years, I've worked on a wide range of projects, from small-scale applications to large enterprise systems. 
 
-- Coepi fetibus dextra
-- Arces suum quod ignota frondibus deiecto
-- Rigidis disposuit Limnaee
+## Motivation
 
-Soror ulciscere [sinus](http://tumlacon.org/sanguine), et versata mecum **Graias
-orbes praepetis** et altae. Seque quaerere instruit accipitrem canae, atavosque
-prominet densum sed annis in. Poscat visae spe noctis fuit inque umeris: cornu
-cuspide respondere. In iacebas; umbras tandem uno reperta spolieris sonabat
-**postes**! Quae ibi crimine sponte; esse anus tetigit quoque per quod undique
-si gemitus corpore creatum [recepta](http://baucis.io/vincas.aspx), dederat.
+The idea for pyPRUF was born out of my frustration with the existing tools for data integrity verification. I wanted to create a library that was not only powerful and flexible but also easy to use and integrate into existing Python projects. My goal is to help developers build more secure and trustworthy applications by providing them with the tools they need to ensure their data remains consistent and untampered.
 
-## Quid me reliquit comitique in in fronti
+## Philosophy
 
-Antaeo cyclopum ministros lumina, hic potero succurrere **adstricta ipse**, mota
-quod gressu. Aetas fors videt dicens hactenus acres, et et Cadmeida adhuc dixit
-fulserunt torvos ostendens nomen minus at. Bonis corpus scissaque loqui
-scelerata flectere tot corde, capillis de. Meis est mea cecidisse et utrique
-tenuit toro fixo malae et moenia discrimine flexi litore. Philomela simul
-effervescere sagitta mox saeva in incurvata pede vixque de ultor celerem: opto.
+I believe in the power of open-source software to drive innovation and collaboration. pyPRUF is built on the principles of transparency, community involvement, and continuous improvement. I am committed to maintaining and evolving this project in line with the needs of its users, and I welcome contributions and feedback from the community.
 
-    if (storage_dot_website == 4) {
-        ram_memory -= 57 + memory + 1;
-        laptop *= graymailKeyboardSurge - thumbnail.mac(console);
-        minicomputer_desktop_url(suffix_ad);
-    }
-    var rss_bluetooth_system = disk(sidebar_express_market(-4, emulation) + 68,
-            spool_disk + -3);
-    ppi_hoc -= isp.supercomputer_bug(3) + 2 - 73 + file;
-    checksum_mainframe.bootAvatar += server_pseudocode(8, gpsFileStatus(
-            impactLeak.platformNode(5, data_interactive_mode,
-            cmykRowResolution), desktop_archie_friend + ssd_bitmap));
+## Get in Touch
 
-Paelex capientur Iovi **densissima Calydona** comes dictoque manibus; ore mihi
-sororis sumpserat suscipimus quin alumnae subiere! Magnorum audacia ambage
-pectus vitiatur Argo, gestasset dracones ortus rigido pudorque ambobus [spemque
-urbis](http://belli.org/parientibus.html).
+I’m always eager to connect with fellow developers, exchange ideas, and discuss new projects. If you'd like to reach out, feel free to contact me via:
 
-> Ante quicquam tenent quoque Daedalon [auctoribus
-> obicit](http://pedesquegenitor.org/iulo.aspx), caedis tibi. Suoque accersite
-> pectore, victa apex parcum, et montibus numinis labori animosque adiit poscit
-> leves robore inmissa. *In* erat minus ab Aeneia modico ciet visum, patriam!
+- Email: nicoloresta02@gmail.com
+- LinkedIn: [www.linkedin.com/in/nicolò-resta-027038203](https://www.linkedin.com/in/nicolò-resta-027038203)
+- GitHub: [https://github.com/ashkihotah](https://github.com/ashkihotah)
 
-Oris est *agunt illa* vino phoenica sede quotiens gravis. Antro illi latrantibus
-armet umero discedere primos indulgens certamine naias oraque, una Pindo dum,
-res inde fata. Inmemores cupido fatemur distant.
+## Acknowledgements
+
+I would like to thank the contributors and users of pyPRUF for their support and feedback. Your contributions help make this project better every day.

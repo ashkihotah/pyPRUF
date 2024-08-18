@@ -25,8 +25,11 @@ if __name__ == "__main__":
 
     union_set = A | B
     intersection_set = A & B
+    difference_set = A - B
+    complement_set = union_set - A # A complement relative to A ∪ B
     complement_set = ~A
     cartesian_product_set = A * F
+    natural_join_set = A @ E
     or_projection_set = A.projection(('D2',), FuzzyOr.MAX)
     and_projection_set = A.projection(('D2',), FuzzyAnd.MIN)
     particularization = A.particularization({'D1': C})
@@ -34,6 +37,10 @@ if __name__ == "__main__":
     print("    cardinality:", union_set.cardinality())
     print("A ∩ B =", intersection_set, "\ndomain:", intersection_set.get_domain(), end="")
     print("    cardinality:", intersection_set.cardinality())
+    print("A - B =", difference_set, "\ndomain:", difference_set.get_domain(), end="")
+    print("    cardinality:", difference_set.cardinality())
+    print("~A rel_to(A ∪ B) =", complement_set, "\ndomain:", complement_set.get_domain(), end="")
+    print("    cardinality:", complement_set.cardinality())
     print("~A =", complement_set, "\ndomain:", complement_set.get_domain(), end="")
     print("    cardinality:", complement_set.cardinality())
     print("A × F =", cartesian_product_set, "\ndomain:", cartesian_product_set.get_domain(), end="")
@@ -46,9 +53,9 @@ if __name__ == "__main__":
     print("proportion{A/G} = ", A / B)
     print(not_D.compatibility(D))
     print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", not_D.consistency(D))
-    print("A ⋈ E =", (A @ E))
+    print("A ⋈ E =", natural_join_set, "\ndomain: ", natural_join_set.get_domain(), end="")
     print("very(A) =", A.apply(LinguisticModifiers.VERY))
-    print("Cilindrical_Extension(A, F) =\n", A.cilindrical_extension(F)[0].get_tabular_str())
+    print("Cilindrical_Extension(A, F) =\n", A.cilindrical_extension(F)[0].tab_str())
 
     A.rename_domain({'D1': 'X1', 'D2': 'X2'})
     print(A.get_domain())

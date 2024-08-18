@@ -19,6 +19,8 @@ plugins:
 
 nav:
   - Welcome to pyPRUF: index.md
-  - User Guide: user_guide.md
+  - Getting Started:
+    - Fuzzy Relational Algebra: fuzzy_relational_algebra.md
+    - PRUF Specific Operators: pruf_operators.md
   - API: api.md
   - About: about.md

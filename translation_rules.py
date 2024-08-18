@@ -41,9 +41,9 @@ likely_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.35, b=0.75, c
 
 prob = Bell(0.0, 5.0) # simulazione di una distribuzione di probabilità qualsiasi
 
-print(people_fs.get_tabular_str() + '\n')
-# print(tall_fs.get_tabular_str())
-# print(young_fs.get_tabular_str())
+print(people_fs.tab_str() + '\n')
+# print(tall_fs.tab_str())
+# print(young_fs.tab_str())
 
 # Query1: Most people are tall
 
@@ -55,7 +55,7 @@ result = most_fs[prop]
 
 elapsed_time = time.time() - start_time
 print("Query1: 'Most people are tall' =================\n")
-print(tall_people.get_tabular_str()) 
+print(tall_people.tab_str()) 
 print("mean_cardinality(TALL_PEOPLE) = ", prop)
 print("MOST(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -71,7 +71,7 @@ result = most_fs[prop]
 elapsed_time = time.time() - start_time
 
 print("Query2: 'Most males are tall' =================\n")
-print(males_tall.get_tabular_str()) 
+print(males_tall.tab_str()) 
 print("proportion(MALES_TALL / TALL_PEOPLE) = ", prop)
 print("MOST(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -87,7 +87,7 @@ result = most_fs[prop]
 elapsed_time = time.time() - start_time
 
 print("Query: 'Most young people are tall' =================\n")
-print(young_and_tall_people.get_tabular_str())
+print(young_and_tall_people.tab_str())
 print("proportion(YOUNG_AND_TALL_PEOPLE / TALL_PEOPLE) = ", prop)
 print("Most(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -103,7 +103,7 @@ result = most_fs[prop]
 elapsed_time = time.time() - start_time
 
 print("Query: 'Most young boys are tall' =================\n")
-print(young_and_tall_boys.get_tabular_str())
+print(young_and_tall_boys.tab_str())
 print("Prop(YOUNG_AND_TALL_BOYS / YOUNG_AND_TALL_PEOPLE) = ", prop)
 print("Most(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -118,7 +118,7 @@ result = most_fs[prop]
 
 elapsed_time = time.time() - start_time
 print("Query: 'Most tall people are young' =================\n")
-print(young_people.get_tabular_str())
+print(young_people.tab_str())
 print("Prop(YOUNG_AND_TALL_PEOPLE / YOUNG_PEOPLE) = ", prop)
 print("Most(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -132,7 +132,7 @@ result = LinguisticModifiers.VERY(result)
 
 elapsed_time = time.time() - start_time
 print("Query: 'Carol is very intelligent is very likely' =================\n")
-print(intelligent_fs.get_tabular_str())
+print(intelligent_fs.tab_str())
 print("Result =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
 # plot_function(prob, x_range=(0, 1), title="prob_intelligent_carol")

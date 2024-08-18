@@ -238,7 +238,7 @@ class DiscreteFuzzySet(FuzzySet):
                 the corresponding tuple. If this column is missing, all
                 tuples are assumed to belong to the fuzzy relation with
                 membership degree 1. All memberships value in data
-                must be floats in the interval [0, 1].
+                must be floats in the interval (0, 1].
         If data is a DataFrame, it is not required to also specify the domain
         parameter. If it is done anyway, it will be ignored and the domain will
         be inferred from the DataFrame columns names. If data is a tuple
@@ -286,7 +286,7 @@ class DiscreteFuzzySet(FuzzySet):
                         variables.append(dict_relation[key][i])
                     else:
                         mu = dict_relation[key][i]
-                        assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All values in 'mu' must be floats between [0, 1]!"
+                        assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All values in 'mu' must be floats between (0, 1]!"
                 self.__fuzzy_set[tuple(variables)] = mu
 
             if 'mu' in keys:
@@ -305,7 +305,7 @@ class DiscreteFuzzySet(FuzzySet):
                 assert isinstance(data, dict), "'data' must be 'None', a dictionary or a Dataframe!"
                 for element, mu in data.items():
                     assert isinstance(element, tuple) and len(element) == length, "All keys in 'data' must be tuples with the same length as the domain!"
-                    assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All memberships values must be floats between [0, 1]!"
+                    assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All memberships values must be floats between (0, 1]!"
                     self.__fuzzy_set[element] = mu
 
             self.__domain = list(domain)
@@ -348,7 +348,7 @@ class DiscreteFuzzySet(FuzzySet):
         """Adds or updates (the membership value of) an element in the `DiscreteFuzzySet`.
 
         The `element` must be a tuple with the same length as the domain,
-        and the `membership` must be a float value in the interval [0, 1].
+        and the `membership` must be a float value in the interval (0, 1].
 
         Args:
             element (tuple): The element to add or update in the
@@ -358,7 +358,7 @@ class DiscreteFuzzySet(FuzzySet):
 
         Raises:
             AssertionError: If `membership` is not a float in the
-                interval [0, 1] or if `element` is not a tuple with
+                interval (0, 1] or if `element` is not a tuple with
                 the same length as the domain of the current fuzzy set.
 
         Examples:
@@ -373,7 +373,7 @@ class DiscreteFuzzySet(FuzzySet):
             set reflects these changes.
         """
         assert isinstance(membership, float), "'membership' must be a float!"
-        assert .0 < membership and membership <= 1.0, "'membership' must be in [0, 1] interval!"
+        assert .0 < membership and membership <= 1.0, "'membership' must be in (0, 1] interval!"
         assert isinstance(element, tuple), "'element' must be a tuple! "
         assert len(self.__domain) == len(element), "'element' must be a tuple of the same length of the domain!"
 
@@ -1398,7 +1398,7 @@ class DiscreteFuzzySet(FuzzySet):
         """
         return set(self.__fuzzy_set.items())
     
-    def get_tabular_str(self) -> str: # differentia
+    def tab_str(self) -> str: # differentia
         """Returns the tabular format string of this
         fuzzy relation.
 
