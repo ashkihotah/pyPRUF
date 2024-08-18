@@ -12,7 +12,7 @@ This library provides tools and utilities for creating, manipulating, and reason
 
 At the moment, this library provides facilities that manage only discrete fuzzy sets however, it is designed in such a way that it can easily be expanded in the future to also handle continuous fuzzy sets.
 
->> *At present, pyPRUF is still in its intial stages of development. This library could be improved in many ways and, time to time, it will be done!*😊
+> *At present, pyPRUF is still in its intial stages of development. This library could be improved in many ways and, time to time, it will be done!*😊
 
 It is recommended to have or obtain a solid foundation of knowledge in fuzzy logic and fuzzy set theory before reading the user guide to this library.
 
