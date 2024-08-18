@@ -14,7 +14,7 @@ At the moment, this library provides facilities that manage only discrete fuzzy 
 
 > *At present, pyPRUF is still in its intial stages of development. This library could be improved in many ways and, time to time, it will be done!*😊
 
-It is recommended to have or obtain a solid foundation of knowledge in fuzzy logic and fuzzy set theory before reading the user guide to this library.
+It is recommended to have or obtain a solid foundation of knowledge in fuzzy logic and fuzzy set theory before reading the [docs](https://ashkihotah-pypruf.readthedocs.io/en/latest/).
 
 ## Key Features
 
