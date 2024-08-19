@@ -27,9 +27,29 @@ It is recommended to have or obtain a solid foundation of knowledge in fuzzy log
       3. Cartesian Product and Natural Join
       4. Renaming, Projection and Select
 3. **PRUF specific operators**
-      1. Cylindrical Extension
+      1. Cylindrical Extension and Particularization
       2. Normal / Mean Cardinality and Proportion
       3. Consistency and Compatibility
       4. Extension Principle
+4. **Translation Rules Examples**: Type I, II, III and IV
+5. **Some Continuous Fuzzy Set facilities**:
+      1. Standard Membership Functions
+      2. Temporary Implementation of some operations
    
 **WARNING**: *A python version higher than 3.11 is required*.
+
+## Installation
+
+Installing **pyPRUF** is straightforward. You can install it via pip:
+
+```
+pip install pyPRUF
+```
+
+## License
+
+**pyPRUF** is open-source and distributed under the GNU Lesser General Public License (LGPL) - see the [LICENSE](https://github.com/ashkihotah/pyPRUF/blob/dev/LICENSE.txt) file for details.
+
+## Contributing
+
+We welcome contributions from the community! If you'd like to contribute to pyPRUF, please check out our Contributing Guide for more information on how to get started.

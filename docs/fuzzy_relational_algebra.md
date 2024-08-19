@@ -1,6 +1,6 @@
 # Fuzzy Relational Algebra
 
-The first thing to introduce is the basic Fuzzy Relational Algebra operations, in order to do more sophisticated things later on. The Zadeh PRUF framework, in fact, is based on a relational database in which fuzzy relations are stored. pyPRUF assumes that such a database is completely managed by the user of this library and, instead, provides some external tools that allow approximate reasoning on these fuzzy relations in the database.
+The [`fuzzy_set`](./api.md/#pyPRUF.fuzzy_set) module provides a class named `DiscreteFuzzySet` for performing discrete fuzzy set operations based on the idea of a **Fuzzy Relational Algebra**. The first thing to introduce is the basic Fuzzy Relational Algebra operations, in order to do more sophisticated things later on. The Zadeh PRUF framework, in fact, is based on a relational database in which fuzzy relations are stored. pyPRUF assumes that such a database is completely managed by the user of this library and, instead, provides some external tools that allow approximate reasoning on these fuzzy relations in the database.
 
 ## Discrete Fuzzy Sets
 

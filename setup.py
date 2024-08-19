@@ -7,7 +7,7 @@ setup(
     url='https://github.com/ashkihotah/pyPRUF',
     author='Nicolò Resta',
     author_email='nicoloresta02@gmail.com',
-    # license='BSD 2-clause',
+    license='LGPL-3.0-or-later',
     packages=['pyPRUF'],
     install_requires=['pandas'],
 
