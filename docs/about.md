@@ -4,11 +4,11 @@ Hello! I'm Nicolò Resta, the creator and maintainer of pyPRUF. I am a passionat
 
 ## Background
 
-I have a __[mention your relevant experience, e.g., degree in Computer Science, years of experience in software development, etc.]__. Over the years, I've worked on a wide range of projects, from small-scale applications to large enterprise systems. 
+I have a degree in Computer Science and six years of coding experience during my school and academic career working on a wide range of projects. <!-- [mention your relevant experience, e.g., degree in Computer Science, years of experience in software development, etc.] -->
 
-## Motivation
+<!-- ## Motivation
 
-The idea for pyPRUF was born out of my frustration with the existing tools for data integrity verification. I wanted to create a library that was not only powerful and flexible but also easy to use and integrate into existing Python projects. My goal is to help developers build more secure and trustworthy applications by providing them with the tools they need to ensure their data remains consistent and untampered.
+The idea for pyPRUF was born out of my frustration with the existing tools for data integrity verification. I wanted to create a library that was not only powerful and flexible but also easy to use and integrate into existing Python projects. My goal is to help developers build more secure and trustworthy applications by providing them with the tools they need to ensure their data remains consistent and untampered. -->
 
 ## Philosophy
 

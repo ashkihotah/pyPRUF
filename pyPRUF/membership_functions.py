@@ -10,6 +10,7 @@ class MembershipFunction(ABC):
     method, which defines the membership function
     for a given element `x`.
     """
+    INF = sys.float_info.max
 
     @abstractmethod
     def __call__(self, x) -> float:
@@ -91,18 +92,18 @@ class Trapezoidal(MembershipFunction):
         Raises:
             AssertionError: If the input values do not satisfy the
                 conditions \n
-                - `a < b or (a == -sys.float_info.max and a == b)`
+                - `a < b or (a == -MembershipFunction.INF and a == b)`
                 - `b < c`
-                - `c < d or (c == sys.float_info.max and c == d)`
+                - `c < d or (c == MembershipFunction.INF and c == d)`
         """
         # super().__init__()
         assert isinstance(a, float), "'a' must be a float!"
         assert isinstance(b, float), "'b' must be a float!"
         assert isinstance(c, float), "'c' must be a float!"
         assert isinstance(d, float), "'c' must be a float!"
-        assert (a < b or (a == -sys.float_info.max and a == b)), "The condition a < b or (a == -sys.float_info.max and a == b) must be satisfied!"
+        assert (a < b or (a == -MembershipFunction.INF and a == b)), "The condition a < b or (a == -MembershipFunction.INF and a == b) must be satisfied!"
         assert b < c, "The condition b < c must be satisfied!" # se togli questo assert viene rappresentata correttamente anche la triangolare
-        assert (c < d or (c == sys.float_info.max and c == d)), "The condition (c < d or (c == -sys.float_info.max and c == d)) must be satisfied!"
+        assert (c < d or (c == MembershipFunction.INF and c == d)), "The condition (c < d or (c == -MembershipFunction.INF and c == d)) must be satisfied!"
         self.a = a
         self.b = b
         self.c = c
@@ -171,3 +172,8 @@ class Bell(MembershipFunction):
         """
         assert isinstance(x, float), "'x' must be a float!"
         return math.exp(-((x - self.m) ** 2) / (self.s ** 2))
+    
+def mf_of_tuple(tuple_element: tuple, mf: MembershipFunction):
+    assert isinstance(tuple_element, tuple) and len(tuple_element) > 0, "'tuple_element' must be a tuple with at least an element!"
+    assert isinstance(mf, MembershipFunction), "'mf' must be of type 'MembershipFunction'"
+    return mf(tuple_element[0])

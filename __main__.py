@@ -55,7 +55,7 @@ if __name__ == "__main__":
     print("Cons{NOT(SMALL_INTEGER), SMALL_INTEGER} = ", not_D.consistency(D))
     print("A ⋈ E =", natural_join_set, "\ndomain: ", natural_join_set.get_domain(), end="")
     print("very(A) =", A.apply(LinguisticModifiers.VERY))
-    print("Cilindrical_Extension(A, F) =\n", A.cilindrical_extension(F)[0].tab_str())
+    print("Cilindrical_Extension(A, F) =\n", A.cylindrical_extension(F)[0].tab_str())
 
     A.rename_domain({'D1': 'X1', 'D2': 'X2'})
     print(A.get_domain())

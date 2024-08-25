@@ -580,13 +580,3 @@ class LinguisticModifiers(FuzzyUnaryOperator):
         assert isinstance(a, float), "'a' value must be float!"
         assert 0.0 <= a and a <= 1.0, "'a' must be between [0, 1]!"
         return self.value(a)
-    
-class CustomFuzzyAnd(FuzzyAnd):
-
-    @member
-    def NEW_IMPLEMENTATION(a: float, b:float) -> float:
-        # calculate and return
-        pass
-
-    def __call__(self, a: float, b: float) -> float:
-        return super().__call__(a, b)

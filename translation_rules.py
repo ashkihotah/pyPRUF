@@ -2,13 +2,13 @@ import sys
 import time
 import pandas as pd
 
-from pyPRUF.fuzzy_logic import FuzzyAnd, LinguisticModifiers
+from pyPRUF.fuzzy_logic import FuzzyAnd, FuzzyOr, LinguisticModifiers
 from pyPRUF.fuzzy_set import *
 from pyPRUF.membership_functions import *
 from fake_data import get_fake_people_df
 
 # Creiamo un dizionario con altezze da 140 cm a 210 cm e gradi di appartenenza 
-tall_fun =  Trapezoidal(a=160.0, b=180.0, c=sys.float_info.max, d=sys.float_info.max)
+tall_fun =  Trapezoidal(a=160.0, b=180.0, c=MembershipFunction.INF, d=MembershipFunction.INF)
 tall_dict = { (height,): tall_fun(float(height)) for height in range(161, 211) }
 tall_fs = DiscreteFuzzySet(('Heights_cm', ), tall_dict)
 
@@ -33,9 +33,9 @@ data = {
 df = pd.DataFrame(data)
 people_fs = DiscreteFuzzySet(data=df)
 
-small_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=-sys.float_info.max, b=-sys.float_info.max, c=10.0, d=20.0))
-several_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=1.0, b=10.0, c=sys.float_info.max, d=sys.float_info.max))
-most_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.2, b=0.65, c=0.99, d=1.0))
+small_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=-MembershipFunction.INF, b=-MembershipFunction.INF, c=10.0, d=20.0))
+several_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=1.0, b=10.0, c=MembershipFunction.INF, d=MembershipFunction.INF))
+most_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.2, b=0.65, c=1.0, d=1.1))
 true_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.35, b=0.75, c=1.1, d=1.2))
 likely_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.35, b=0.75, c=1.1, d=1.2))
 
@@ -45,11 +45,12 @@ print(people_fs.tab_str() + '\n')
 # print(tall_fs.tab_str())
 # print(young_fs.tab_str())
 
+
 # Query1: Most people are tall
 
 start_time = time.time()
 
-tall_people = people_fs @ tall_fs
+tall_people = people_fs.particularization({'Heights_cm': tall_fs}) # people_fs @ tall_fs
 prop = tall_people.mean_cardinality()
 result = most_fs[prop]
 
@@ -80,14 +81,18 @@ print(f"\nElapsed time: {elapsed_time} seconds")
 
 start_time = time.time()
 
-young_and_tall_people = tall_people @ young_fs
-prop = young_and_tall_people / tall_people
+young_and_tall_people = tall_people.particularization({'Ages': young_fs}) # tall_people @ young_fs
+# prop = young_and_tall_people / tall_people
+# result = most_fs[prop]
+young_people = people_fs.particularization({'Ages': young_fs}) # people_fs @ young_fs
+prop = young_people / tall_people
 result = most_fs[prop]
 
 elapsed_time = time.time() - start_time
 
 print("Query: 'Most young people are tall' =================\n")
-print(young_and_tall_people.tab_str())
+# print(young_and_tall_people.tab_str())
+print(young_people.tab_str())
 print("proportion(YOUNG_AND_TALL_PEOPLE / TALL_PEOPLE) = ", prop)
 print("Most(" + str(prop) + ") =", result)
 print(f"\nElapsed time: {elapsed_time} seconds")
@@ -112,8 +117,11 @@ print(f"\nElapsed time: {elapsed_time} seconds")
 
 start_time = time.time()
 
-young_people = people_fs @ young_fs
-prop = young_and_tall_people / young_people
+# young_people = people_fs @ young_fs
+# prop = young_and_tall_people / young_people
+# result = most_fs[prop]
+
+prop = tall_people / young_people
 result = most_fs[prop]
 
 elapsed_time = time.time() - start_time
@@ -154,8 +162,8 @@ print(f"\nElapsed time: {elapsed_time} seconds")
 
 start_time = time.time()
 
-men = people_fs.particularization({'Genders': 'Male'})
-tall_men = men @ tall_fs
+tall_men = people_fs.particularization({'Genders': 'Male', 'Heights_cm': tall_fs})
+# tall_men = men @ tall_fs
 minimum = tall_men.collapse(FuzzyAnd.MIN)
 result = FuzzyAnd.MIN(minimum, several_fs[tall_men.cardinality()])
 

@@ -1013,8 +1013,8 @@ class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
             ('x2', 'y2'): .7,
             ('x3', 'y3'): .2
         })
-        self.res1, self.res2 = self.fs1.cilindrical_extension(self.fs2)
-        self.dis_res1, self.dis_res2 = self.fs1.cilindrical_extension(self.fs3)
+        self.res1, self.res2 = self.fs1.cylindrical_extension(self.fs2)
+        self.dis_res1, self.dis_res2 = self.fs1.cylindrical_extension(self.fs3)
 
     def test_partial_overlapping_res1(self):
         self.assertEqual(self.res1.to_dictionary(), {
@@ -1082,7 +1082,7 @@ class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
 
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
-            self.fs1.cilindrical_extension('fake')
+            self.fs1.cylindrical_extension('fake')
 
 class Test_DiscreteFuzzySet_reorder(unittest.TestCase):
 

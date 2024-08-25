@@ -4,7 +4,7 @@ from typing import Callable, Tuple
 
 from pandas import DataFrame
 from pyPRUF.fuzzy_logic import FuzzyBinaryOperator, FuzzyLogic, FuzzyUnaryOperator
-from pyPRUF.membership_functions import MembershipFunction
+from pyPRUF.membership_functions import MembershipFunction, mf_of_tuple
 
 class FuzzySet(ABC):
 
@@ -98,12 +98,15 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def cilindrical_extension(self, set2):
+    def cylindrical_extension(self, set2):
         pass
 
 class ContinuousFuzzySet(FuzzySet):
     """A class representing a continuous fuzzy set,
     inheriting from `FuzzySet`.
+
+    **WARNING**: This class is not fully implemented,
+    please check the online documentation before using it.
 
     The `ContinuousFuzzySet` class is designed to handle
     fuzzy sets where their domain is continuous
@@ -126,7 +129,7 @@ class ContinuousFuzzySet(FuzzySet):
         self.mf = mf
 
     def __getitem__(self, element) -> float: # membership: []
-        return self.mf(element)
+        return mf_of_tuple(element, self.mf)
 
     def __setitem__(self, element, membership: float) -> None: # add/update_element: []
         pass
@@ -190,7 +193,7 @@ class ContinuousFuzzySet(FuzzySet):
     def image(self, function: Callable, out_domain: tuple):
         pass
 
-    def cilindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
+    def cylindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
         pass
 
 class DiscreteFuzzySet(FuzzySet):
@@ -754,7 +757,7 @@ class DiscreteFuzzySet(FuzzySet):
             >>> set_b = DiscreteFuzzySet(('X', ), {('b', ): 0.4, ('c', ): 0.5, ('d', ): 0.6})
             >>> proportion = set_a / set_b
             >>> print(proportion)
-            0.6666666666666666
+            0.5333333333333333
 
             In this example, the intersection of `set_a` and `set_b` contains the elements
             {('b', ), ('c', )} with a combined cardinality of 2, while `set_b` has a cardinality of 3.
@@ -804,10 +807,10 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
 
         domain = self.get_domain()
-        indexes = []
+        indexes = set()
         for var in subdomain:
             assert var in domain, "'" + str(var) + "' not in the domain of the fuzzy set!"
-            indexes.append(domain.index(var))
+            indexes.add(domain.index(var))
 
         new_set = {}
         to_remove = set()
@@ -874,7 +877,7 @@ class DiscreteFuzzySet(FuzzySet):
         for var in assignment.keys():
             assert var in domain, "'" + str(var) + "' not in the domain of the fuzzy set!"
             index = domain.index(var)
-            if isinstance(assignment[domain[index]], DiscreteFuzzySet):
+            if isinstance(assignment[domain[index]], FuzzySet):
                 fs_indexes.append(index)
             else:
                 indexes.append(index)
@@ -1192,7 +1195,7 @@ class DiscreteFuzzySet(FuzzySet):
                 new_set[y] = membership
         return DiscreteFuzzySet(out_domain, new_set)
     
-    def cilindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
+    def cylindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
         """Computes the cylindrical extension of two fuzzy sets over a combined domain.
 
         This method extends the current fuzzy set and `set2` to a common domain
@@ -1221,7 +1224,7 @@ class DiscreteFuzzySet(FuzzySet):
         Examples:
             >>> set1 = DiscreteFuzzySet(('x', 'y'), {('a', 'b'): 0.5, ('c', 'd'): 0.4})
             >>> set2 = DiscreteFuzzySet(('y', 'z'), {('e', 'f'): 0.7, ('g', 'h'): 0.3})
-            >>> extended_set1, extended_set2 = set1.cilindrical_extension(set2)
+            >>> extended_set1, extended_set2 = set1.cylindrical_extension(set2)
             >>> print(extended_set1.get_domain())
             ('y', 'x', 'z')
             >>> print(extended_set2.get_domain())
