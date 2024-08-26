@@ -30,14 +30,13 @@ It is recommended to have or obtain a solid foundation of knowledge in fuzzy log
       5. Renaming and Projection
       6. Extension Principle
       7. Reorder and extra methods
-3. **PRUF specific operators**
+3. **Translation Rules**
       1. Collapsing DiscreteFuzzySets
-      2. Apply Linguistic Modifiers
-      3. Normal / Mean Cardinality and Proportion
-      4. Cylindrical Extension 
-      5. Consistency and Compatibility
-4. **Translation Rules Examples**: Type I, II, III and IV
-5. **Some Continuous Fuzzy Set facilities**:
+      2. Type I (Modification): Apply Linguistic Modifiers
+      3. Type II (Composition): Cylindrical Extension 
+      4. Type III (Quantification): Normal / Mean Cardinality and Proportion
+      5. Type IV (Qualification): Consistency and Compatibility
+4. **Some Continuous Fuzzy Set facilities**:
       1. Standard Membership Functions
       2. Temporary Implementation of some methods
    

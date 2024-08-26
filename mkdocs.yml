@@ -31,6 +31,6 @@ nav:
     - Fuzzy Logic: fuzzy_logic.md
     - Discrete Fuzzy Sets: fuzzy_rel_alg.md
     - Continuous Fuzzy Sets: cont_fuzzy_sets.md
-    - Translation Rules: pruf.md
+    - Translation Rules: translation_rules.md
   - API: api.md
   - About: about.md

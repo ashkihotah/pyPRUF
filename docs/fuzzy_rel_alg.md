@@ -263,15 +263,6 @@ where $f^{-1}(y)$  is the preimage of $y$  under the function $f$ , i.e., $f^{-1
 
 ## Reorder and extra methods
 
-Sometimes resulting `DiscreteFuzzySet`s from the preceding operations can have domains that differs from each other only by their domain tuple permutation. Two domains `('A1', 'A2')` and `('A2', 'A1')` are considered different and that's why if we wanted to perform the union of two fuzzy sets with these domains we could not do it. In order to always be able to calculate the result of an operation that requires a common domain between two fuzzy sets, pyPRUF provides the [`reorder`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.reorder) method that allows to reorder all the tuples in a fuzzy relation according to a permutation of the domain sets given in input.
-
-Example:
-
-```python
->>> fuzzy_set = DiscreteFuzzySet(('x', 'y', 'z'), {('a', 'b', 'c'): 0.5, ('d', 'e', 'f'): 0.2})
->>> reordered_set = fuzzy_set.reorder(('z', 'x', 'y'))
->>> print(reordered_set.to_dictionary())
-{('c', 'a', 'b'): 0.5, ('f', 'd', 'e'): 0.2}
-```
+Sometimes resulting `DiscreteFuzzySet`s from the preceding operations can have domains that differs from each other only by their domain tuple permutation. Two domains `('A1', 'A2')` and `('A2', 'A1')` are considered different and that's why if we wanted to perform the union of two fuzzy sets with these domains we could not do it. In order to always be able to calculate the result of an operation that requires a common domain between two fuzzy sets, pyPRUF provides the [`reorder`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.reorder) method that allows to reorder all the tuples in a fuzzy relation according to a permutation of the domain sets given in input. A simple example can be found in its [API doc](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.reorder).
 
 Extra methods such as [`to_dictionary`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.to_dictionary), [`elements`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.elements), [`memberships`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.memberships) and [`items`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.items) are also available to respectively get a `dict` representation of the fuzzy set, a `set` of all elements in its support, a `set` of all their memberships and a `set` of pairs (element, membership) in the support of the fuzzy set.

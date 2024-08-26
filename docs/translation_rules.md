@@ -2,6 +2,37 @@
 
 The **translation rules** defined in Zadeh's paper are mechanisms used to transform expressions in natural language into **mathematical expressions**, or **procedures**, which can be processed within a **fuzzy logic framework** on a set of fuzzy relations in a **fuzzy database** for approximate reasoning purposes. These can be seen as abstract or generic examples of queries expressed in natural language that can be answered by translating them into procedures in PRUF, which is the fuzzy logic framework used by this library, and executing them on a reference fuzzy database. Thus, if $p$ is a proposition in a natural language which translates into a pyPRUF procedure $P$, then $P$ may be interpreted as the **meaning** of $p$ while its result as the **information conveyed** by $p$. For the present, at least, the translation rules in pyPRUF are human-use oriented in that they do not provide a system for an automatic translation from a natural language into PRUF.
 
+The expressions in natural language taken into account are:
+
+1. **Fuzzy Assertions** (or **Propositions**): these are expressions $p$ in natural language which translates into a procedure $P$ which returns a membership degree between [0, 1]. Some examples are:
+
+      - *Ronald is more or less young*
+      - *Miriam was very rich*
+      - *Harry loves Ann*
+      - *X is much smaller than Y*
+      - *X and Y are approximately equal*
+      - *If X is large then Y is small*
+      - *Most Swedes are blond*
+      - *Many men are much taller than most men*
+      - *Most Swedes are tall is not very true*
+      - *The man in the dark suit is walking slowly toward the door*
+      - *Susanna gave several expensive presents to each of her close friends*
+      - *If X is much greater than Y then (Z is small is very probable)*
+      - *If X is much greater than Y then (Z is smal1 is quite possible)*
+
+2. **Fuzzy Set Descriptors**: these are expressions $p$ in natural language which translates into a procedure $P$ which returns another fuzzy set. These are characterizations or descriptions of fuzzy sets in terms of other fuzzy sets. Some examples are:
+
+      - *Very tall man*
+      - *Tall man wearing a brown hat*
+      - *The dishes on the table*
+      - *Small integer*
+      - *Numbers which are much larger than 10*
+      - *Many/Most/Several tall women*
+      - *Above the table*
+      - *Much taller than*
+
+3. **Fuzzy Questions**: To simplify the treatment of questions, we shall employ the artifice of translating into PRUF not the question itself but rather the answer to it, which, in general, will have the form of a fuzzy proposition. In this way, the translation of questions stated in a natural language may be carried out by the application of translation rules for fuzzy propositions, thus making it unnecessary to have separate rules for questions.
+
 The class [`DiscreteFuzzySet`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet) provides some **PRUF specific operators** defined by Zadeh in his [paper](https://www2.eecs.berkeley.edu/Pubs/TechRpts/1977/ERL-m-77-61.pdf). These operations, in combination with the fuzzy relational algebra operations, allow us to perform all the translation rules proposed in it as well as all the example queries at its end, in the last section. The following sections refer to these operations and how they can be used to answer some example queries.
 
 ## Collapsing
@@ -10,7 +41,7 @@ A useful method is [`collapse`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.coll
 
 > **WARNING**: the [`collapse`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.collapse) method have a semantic sense due to the fact that only the `FuzzyOr` and the `FuzzyAnd` are `FuzzyBinaryOperator` and all implementations, t-norms and t-conorms, of them are **commutative**. If a non commutative custom `FuzzyBinaryOperator` is defined and used here, the resulting memberships could depend on the relative order of tuples in the data structure used to keep them.
 
-**Queries**: *"A person is tall"* and *"All people are tall"*
+**Queries**: *"A person is tall"* (assertion) and *"All people are tall"* (assertion)
 
 ```python
 from pyPRUF.fuzzy_logic import *
@@ -57,10 +88,10 @@ The translation rules of type I are all the rules pertaining to **modification**
 
 As described in the [Fuzzy Logic section](fuzzy_logic.md), `FuzzyNot` is not of type `LinguisticModifiers` but it could semantically be also a `LinguisticModifiers`. That explains why you need to specify a `FuzzyUnaryOperator` rather than a `LinguisticModifiers`. This is also compatible with custom classes that extend `FuzzyUnaryOperator`.
 
-**Queries**: *"Very tall people"* and *"Mario Rossi is very tall"*
+**Queries**: *"Very tall people"* (fuzzy set descriptor) and *"Mario Rossi is very tall"* (assertion)
 
 ```python
-# assume there is people_fs, tall_fs and tall_people, like in the preceding code examples
+# assume there is tall_people, like in the preceding code examples
 # calculate the answer of the query "Very tall people"
 result = tall_people.apply(LinguisticModifiers.VERY)
 print("VERY_TALL_PEOPLE = \n\n" + result.tab_str())
@@ -106,7 +137,7 @@ Their cylindrical extension is a binary function that returns a pair $(C_A, C_B)
 
 Simple queries where the composition is involved are: *"Tall people and expensive products"*, *"Tall people or expensive products"*. 
 
-**Queries**: *"Tall people and expensive products"* and *"Tall people or expensive products"*
+**Queries**: *"Tall people and expensive products"* (fuzzy set descriptor) and *"Tall people or expensive products"* (fuzzy set descriptor)
 ```python
 data = {
     'Product_Names': ['Laptop', 'Smartphone', 'Tablet', 'Smartwatch', 'Headphones'],
@@ -125,6 +156,7 @@ expensive_products = products_fs.particularization({'Prices_USD': expensive_fs})
 
 print("EXPENSIVE_PRODUCTS =\n\n" + expensive_products.tab_str())
 
+# assume there is tall_people, like in the preceding code examples
 # calculate the answer to the query "Tall people and expensive products"
 A, B = tall_people.cylindrical_extension(expensive_products)
 tall_people_and_expensive_products =  A & B
@@ -144,43 +176,43 @@ A simple example of how to use it can be found in its [API doc](./api.md/#pyPRUF
 
 The translation rules of type III are all the rules pertaining to the **quantification** of fuzzy sets. In order to be able to answer these queries, **quantification operators** such as [`cardinality`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.cardinality), [`mean_cardinality`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.mean_cardinality) and [`__truediv__`](./api.md/#pyPRUF.fuzzy_set.DiscreteFuzzySet.__truediv__) (**proportion**) must be available. The normal cardinality returns the sum of all membership values in the fuzzy relation while the mean cardinality returns the mean of this sum. This is a simple definition of the cardinality of a fuzzy set as proposed by Zadeh. These two operations are useful to answer queries such as *"Several people are tall"*, *"Most people are tall"*, *"Three tall people"*, *"Jill has many friends"* exc.
 
-**Queries**: *"Several people are tall"* and *"Most people are tall"*
+**Queries**: *"Several people are tall"* (assertion) and *"Most people are tall"* (assertion)
 
 ```python
-# assume there is tall_people, like in the first code example of this section
+# assume there is tall_people, like in the preceding code examples
 # calculate the answer of the query "Several people are tall"
 several_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=1.0, b=10.0, c=MembershipFunction.INF, d=MembershipFunction.INF))
-result = several_fs[tall_people.cardinality()]
+result = several_fs[(tall_people.cardinality(), )]
 print("Several people are tall:", result)
 
 # calculate the answer of the query "Most people are tall"
 most_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.2, b=0.75, c=1.0, d=1.1))
-result = most_fs[tall_people.mean_cardinality()]
+result = most_fs[(tall_people.mean_cardinality(), )]
 print("Most people are tall:", result, "\n")
 ```
 
 The proportion between set $A$ and $B$, instead, is the cardinality of their intersection divided by the cardinality of the set $B$. This is useful in approximate reasoning tasks such as *"Most young people are tall"*, *"Most tall people are young"*, *"Most young males are tall"* and much more complicated queries.
 
-**Queries**: *"Most young people are tall"*, *"Most tall people are young"* and *"Most young males are tall"*
+**Queries**: *"Most young people are tall"* (assertion), *"Most tall people are young"* (assertion) and *"Most young males are tall"* (assertion)
 
 ```python
-# assume there is tall_people and most_fs, like in the preceding code examples of this section
+# assume there are tall_people and most_fs, like in the preceding code examples
 # calculate the answer of the query "Most young people are tall"
 young_people = people_fs.particularization({'Ages': young_fs})
 prop = young_people / tall_people
-result = most_fs[prop]
+result = most_fs[(prop, )]
 print("YOUNG_PEOPLE = \n\n" + young_people.tab_str())
 print("Most young people are tall:", result)
 
 # calculate the answer of the query "Most tall people are young"
 prop = tall_people / young_people
-result = most_fs[prop]
+result = most_fs[(prop, )]
 print("Most tall people are young:", result)
 
 # calculate the answer of the query "Most young males are tall"
 young_males = people_fs.particularization({'Genders': 'Male', 'Ages': young_fs})
 prop = young_males / tall_people
-result = most_fs[prop]
+result = most_fs[(prop, )]
 print("YOUNG_MALES = \n\n" + young_males.tab_str())
 print("Most young males are tall:", result)
 ```
@@ -205,7 +237,7 @@ The compatibility between $A$ and $B$ is a new fuzzy relation defined by the mem
 
 Some qualification query examples are *"X is small is very true"*, *"Carol is very intelligent is very likely"* and *"X = -5 is small is very true is likely"*.
 
-**Queries**: *"X is small is very true"*, *"Carol is very intelligent is very likely"* and *"X = -5 is small is very true is likely"*.
+**Queries**: *"X is small is very true"* (assertion), *"Carol is very intelligent is very likely"* (assertion) and *"X = -5 is small is very true is likely"* (assertion).
 
 ```python
 small_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=-MembershipFunction.INF, b=-MembershipFunction.INF, c=10.0, d=20.0))
@@ -215,18 +247,20 @@ intelligent_fs = DiscreteFuzzySet(('Names', ), {('Carol', ): 0.65, ('John', ): 0
 likely_fs = ContinuousFuzzySet(('Real Numbers', ), Trapezoidal(a=0.35, b=0.75, c=1.1, d=1.2))
 x = -5.0
 
-# calculate the answer of the query "X = -5 is small is very true"
-result = LinguisticModifiers.VERY(true_fs[small_fs[x]])
+# calculate the answer of the query "X is small is very true"
+result = LinguisticModifiers.VERY(true_fs[(small_fs[(x, )], )])
 print("INTELLIGENT = \n\n" + intelligent_fs.tab_str())
 print("X = -5 is small is very true:", result)
 
 # calculate the answer of the query "Carol is very intelligent is very likely"
 very_inte_carol = LinguisticModifiers.VERY(intelligent_fs[('Carol', )])
-result = likely_fs[very_inte_carol * prob(intelligent_fs[('Carol', )])]
+result = likely_fs[(very_inte_carol * prob(intelligent_fs[('Carol', )]), )]
 result = LinguisticModifiers.VERY(result)
 print("Carol is very intelligent is very likely:", result)
 
-# calculate the answer of the query "X = -5 is small is very true is likely"
-result = likely_fs[prob(x) * LinguisticModifiers.VERY(true_fs[small_fs[x]])]
+# calculate the answer of the query "X is small is very true is likely"
+result = likely_fs[(prob(x) * LinguisticModifiers.VERY(true_fs[(small_fs[(x, )], )]), )]
 print("X = -5 is small is very true is likely:", result)
 ```
+
+> All these queries can be found in the [translation_rules.py](https://github.com/ashkihotah/pyPRUF/blob/dev/translation_rules.py) file on the github repo.
