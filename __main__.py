@@ -1,6 +1,6 @@
 import time
 from pyPRUF.fuzzy_logic import FuzzyAnd, FuzzyOr, LinguisticModifiers
-from pyPRUF.fuzzy_set import DiscreteFuzzySet
+from pyPRUF.fuzzy_sets import DiscreteFuzzySet
 
 if __name__ == "__main__":
     start_time = time.time()

@@ -2,7 +2,7 @@ import time
 import pandas as pd
 
 from pyPRUF.fuzzy_logic import FuzzyAnd, FuzzyOr, LinguisticModifiers
-from pyPRUF.fuzzy_set import *
+from pyPRUF.fuzzy_sets import *
 from pyPRUF.membership_functions import *
 
 # people_fs, tall_fs, tall_people, several_fs, most_fs
@@ -19,7 +19,7 @@ data = {
     'Cities': ['Rome', 'Milan', 'Naples', 'Turin', 'Palermo']
 }
 df = pd.DataFrame(data)
-people_fs = DiscreteFuzzySet(data=df)
+people_fs = DiscreteFuzzySet(mf=df)
 print("PEOPLE = \n\n" + people_fs.tab_str())
 
 # Create a TALL fuzzy set with heights from 140 cm to 210 cm
@@ -55,7 +55,7 @@ data = {
     # 'Ratings': [4.5, 4.7, 4.3, 4.2, 4.8]
 }
 df = pd.DataFrame(data)
-products_fs = DiscreteFuzzySet(data=df)
+products_fs = DiscreteFuzzySet(mf=df)
 print("PRODUCTS =\n\n" + products_fs.tab_str())
 
 expensive_fs = ContinuousFuzzySet(('Prices', ), Trapezoidal(0.0, 500.0, MembershipFunction.INF, MembershipFunction.INF))

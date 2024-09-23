@@ -48,9 +48,9 @@ class Triangular(MembershipFunction):
         assert isinstance(b, float), "'b' must be a float!"
         assert isinstance(c, float), "'c' must be a float!"
         assert a < b and b < c, "The condition a < b < c must be satisfied!"
-        self.a = a
-        self.b = b
-        self.c = c
+        self.__a = a
+        self.__b = b
+        self.__c = c
     
     def __call__(self, x) -> float:
         """Calculate the membership degree for a given
@@ -61,18 +61,18 @@ class Triangular(MembershipFunction):
                 calculate the membership degree.
 
         Returns:
-            float: - (x - self.a) / (self.b - self.a) if self.a <= x and x <= self.b \n
-                - (self.c - x) / (self.c - self.b) if self.b <= x and x <= self.c \n
+            float: - (x - self.__a) / (self.__b - self.__a) if self.__a <= x and x <= self.__b \n
+                - (self.__c - x) / (self.__c - self.__b) if self.__b <= x and x <= self.__c \n
                 - .0 otherwise \n
 
         Raises:
             AssertionError: If `x` is not of type `float`.
         """
         assert isinstance(x, float), "'x' must be a float!"
-        if self.a <= x and x <= self.b:
-            return (x - self.a) / (self.b - self.a)
-        elif self.b <= x and x <= self.c:
-            return (self.c - x) / (self.c - self.b)
+        if self.__a <= x and x <= self.__b:
+            return (x - self.__a) / (self.__b - self.__a)
+        elif self.__b <= x and x <= self.__c:
+            return (self.__c - x) / (self.__c - self.__b)
         return 0.0
     
 class Trapezoidal(MembershipFunction):
@@ -101,13 +101,16 @@ class Trapezoidal(MembershipFunction):
         assert isinstance(b, float), "'b' must be a float!"
         assert isinstance(c, float), "'c' must be a float!"
         assert isinstance(d, float), "'c' must be a float!"
-        assert (a < b or (a == -MembershipFunction.INF and a == b)), "The condition a < b or (a == -MembershipFunction.INF and a == b) must be satisfied!"
-        assert b < c, "The condition b < c must be satisfied!" # se togli questo assert viene rappresentata correttamente anche la triangolare
-        assert (c < d or (c == MembershipFunction.INF and c == d)), "The condition (c < d or (c == -MembershipFunction.INF and c == d)) must be satisfied!"
-        self.a = a
-        self.b = b
-        self.c = c
-        self.d = d
+        assert a <= b, "The condition a <= b must be satisfied"
+        assert b <= c, "The condition b <= c must be satisfied"
+        assert c <= d, "The condition c <= d must be satisfied"
+        # assert (a < b or (a == -MembershipFunction.INF and a == b)), "The condition a < b or (a == -MembershipFunction.INF and a == b) must be satisfied!"
+        # assert b < c, "The condition b < c must be satisfied!" # se togli questo assert viene rappresentata correttamente anche la triangolare
+        # assert (c < d or (c == MembershipFunction.INF and c == d)), "The condition (c < d or (c == -MembershipFunction.INF and c == d)) must be satisfied!"
+        self.__a = a
+        self.__b = b
+        self.__c = c
+        self.__d = d
     
     def __call__(self, x) -> float:
         """Calculate the membership degree for a given element `x` based on the trapezoidal function.
@@ -126,12 +129,12 @@ class Trapezoidal(MembershipFunction):
             AssertionError: If `x` is not of type float.
         """
         assert isinstance(x, float), "'x' must be a float!"
-        if self.a <= x and x < self.b: # IMPORTANTE: il minore stretto a x < self.b evita che quando a = b = -Inf ci sia divisione per 0
-            return (x - self.a) / (self.b - self.a)
-        elif self.b <= x and x <= self.c:
+        if self.__a <= x and x < self.__b: # IMPORTANTE: il minore stretto a x < self.__b evita che quando a = b = -Inf ci sia divisione per 0
+            return (x - self.__a) / (self.__b - self.__a)
+        elif self.__b <= x and x < self.__c:
             return 1.0
-        elif self.c < x and x <= self.d: # IMPORTANTE: il minore stretto a self.c < x evita che quando c = d = Inf ci sia divisione per 0
-            return (self.d - x) / (self.d - self.c)
+        elif self.__c <= x and x < self.__d: # IMPORTANTE: il minore stretto a self.__c < x evita che quando c = d = Inf ci sia divisione per 0
+            return (self.__d - x) / (self.__d - self.__c)
         return 0.0
 
 class Bell(MembershipFunction):
@@ -153,8 +156,8 @@ class Bell(MembershipFunction):
         # super().__init__()
         assert isinstance(m, float), "'a' must be a float!"
         assert isinstance(s, float), "'b' must be a float!"
-        self.m = m
-        self.s = s
+        self.__m = m
+        self.__s = s
     
     def __call__(self, x) -> float:
         """Calculate the membership degree for a given
@@ -165,13 +168,13 @@ class Bell(MembershipFunction):
                 degree.
 
         Returns:
-            float: math.exp(-((x - self.m) ** 2) / (self.s ** 2))
+            float: math.exp(-((x - self.__m) ** 2) / (self.__s ** 2))
 
         Raises:
             AssertionError: If `x` is not of type `float`.
         """
         assert isinstance(x, float), "'x' must be a float!"
-        return math.exp(-((x - self.m) ** 2) / (self.s ** 2))
+        return math.exp(-((x - self.__m) ** 2) / (self.__s ** 2))
     
 def mf_of_tuple(tuple_element: tuple, mf: MembershipFunction):
     assert isinstance(tuple_element, tuple) and len(tuple_element) > 0, "'tuple_element' must be a tuple with at least an element!"

@@ -1,20 +1,20 @@
 import unittest
 from pyPRUF.fuzzy_logic import FuzzyAnd, FuzzyNot, FuzzyOr, LinguisticModifiers
-from pyPRUF.fuzzy_set import *
+from pyPRUF.fuzzy_sets import *
 
 class Test_DiscreteFuzzySet___init__(unittest.TestCase):
 
-    # ======== data, domain TESTING ========
+    # ======== mf, schema TESTING ========
 
-    def test_empty_domain(self):
+    def test_empty_schema(self):
         with self.assertRaises(AssertionError):
             DiscreteFuzzySet((), {('a', 'b'): 0.5})
     
-    def test_invalid_domain_type(self):
+    def test_invalid_schema_type(self):
         with self.assertRaises(AssertionError):
             DiscreteFuzzySet(['x', 'y'], {('a', 'b'): 0.5})
 
-    def test_duplicate_domain(self):
+    def test_duplicate_schema(self):
         with self.assertRaises(AssertionError):
             DiscreteFuzzySet(('x', 'x'), {('a', 'b'): 0.5})
 
@@ -43,77 +43,77 @@ class Test_DiscreteFuzzySet___init__(unittest.TestCase):
             DiscreteFuzzySet(('x', 'y'), {('a', ): .1, ('a', 'b'): .2})
 
     def test_valid_dict(self):
-        domain = ('x', 'y')
-        data = {('a', 'b'): 0.5, ('c', 'd'): 0.8}
-        fuzzy_set = DiscreteFuzzySet(domain, data)
-        self.assertEqual(fuzzy_set.get_domain(), domain)
-        self.assertEqual(fuzzy_set.to_dictionary(), data)
+        schema = ('x', 'y')
+        mf = {('a', 'b'): 0.5, ('c', 'd'): 0.8}
+        fuzzy_set = DiscreteFuzzySet(schema, mf)
+        self.assertEqual(fuzzy_set.get_schema(), schema)
+        self.assertEqual(fuzzy_set.to_dictionary(), mf)
 
     def test_empty_dict(self):
-        domain = ('x', 'y')
-        data = {}
-        fuzzy_set = DiscreteFuzzySet(domain, data)
-        self.assertEqual(fuzzy_set.get_domain(), domain)
-        self.assertEqual(fuzzy_set.to_dictionary(), data)   
+        schema = ('x', 'y')
+        mf = {}
+        fuzzy_set = DiscreteFuzzySet(schema, mf)
+        self.assertEqual(fuzzy_set.get_schema(), schema)
+        self.assertEqual(fuzzy_set.to_dictionary(), mf)   
 
     # ======== Dataframe TESTING ========
 
     def test_valid_dataframe(self):
-        data = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [0.5, 0.8]}
-        df = DataFrame(data)
-        fuzzy_set = DiscreteFuzzySet(data=df)
-        self.assertEqual(fuzzy_set.get_domain(), ('x', 'y'))
+        mf = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [0.5, 0.8]}
+        df = DataFrame(mf)
+        fuzzy_set = DiscreteFuzzySet(mf=df)
+        self.assertEqual(fuzzy_set.get_schema(), ('x', 'y'))
         self.assertEqual(fuzzy_set.to_dictionary(), {('a', 'b'): 0.5, ('c', 'd'): 0.8})
 
     def test_dataframe_without_mu_column(self):
-        data = {'x': ['a', 'c'], 'y': ['b', 'd']}
-        df = DataFrame(data)
-        fuzzy_set = DiscreteFuzzySet(data=df)
-        self.assertEqual(fuzzy_set.get_domain(), ('x', 'y'))
+        mf = {'x': ['a', 'c'], 'y': ['b', 'd']}
+        df = DataFrame(mf)
+        fuzzy_set = DiscreteFuzzySet(mf=df)
+        self.assertEqual(fuzzy_set.get_schema(), ('x', 'y'))
         self.assertEqual(fuzzy_set.to_dictionary(), {('a', 'b'): 1.0, ('c', 'd'): 1.0})
 
     def test_empty_dataframe(self):
         df = DataFrame()
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
     
     def test_no_tuples_dataframe(self):
         df = DataFrame({'col': tuple()})
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
     
     def test_dataframe_with_columns_with_different_lengths(self):
         df = DataFrame({80: (1, 2, 3), 90: (1, 2, 3)})
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
 
     def test_invalid_membership_less_than_0(self):
-        data = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [.0, .8]} # -0.1
-        df = DataFrame(data)
+        mf = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [.0, .8]} # -0.1
+        df = DataFrame(mf)
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
     
     def test_invalid_membership_greater_than_1(self):
-        data = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [1.5, .8]}
-        df = DataFrame(data)
+        mf = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [1.5, .8]}
+        df = DataFrame(mf)
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
     
     def test_invalid_membership_type(self):
-        data = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [1, 8]}
-        df = DataFrame(data)
+        mf = {'x': ['a', 'c'], 'y': ['b', 'd'], 'mu': [1, 8]}
+        df = DataFrame(mf)
         with self.assertRaises(AssertionError):
-            DiscreteFuzzySet(data=df)
+            DiscreteFuzzySet(mf=df)
 
 class Test_DiscreteFuzzySet___getitem__(unittest.TestCase):
     
     def setUp(self):
-        self.domain = ('A', 'B')
-        self.data = {
+        self.schema = ('A', 'B')
+        self.mf = {
             ('A', 'B'): 0.5,
             ('A', 'C'): 0.7
         }
-        self.fuzzy_set = DiscreteFuzzySet(domain=self.domain, data=self.data)
+        self.fuzzy_set = DiscreteFuzzySet(schema=self.schema, mf=self.mf)
 
     def test_element_not_in_dict(self):
         element = 'fake'
@@ -126,12 +126,12 @@ class Test_DiscreteFuzzySet___getitem__(unittest.TestCase):
 class Test_DiscreteFuzzySet___setitem__(unittest.TestCase):
     
     def setUp(self):
-        self.domain = ('A', 'B')
-        self.data = {
+        self.schema = ('A', 'B')
+        self.mf = {
             ('A', 'B'): 0.5,
             ('A', 'C'): 0.7
         }
-        self.fuzzy_set = DiscreteFuzzySet(domain=self.domain, data=self.data)
+        self.fuzzy_set = DiscreteFuzzySet(schema=self.schema, mf=self.mf)
     
     def test_update_element_membership(self):
         self.fuzzy_set[('A', 'B')] = 0.8
@@ -168,12 +168,12 @@ class Test_DiscreteFuzzySet___setitem__(unittest.TestCase):
 class Test_DiscreteFuzzySet___delitem__(unittest.TestCase):
     
     def setUp(self):
-        self.domain = ('A', 'B')
-        self.data = {
+        self.schema = ('A', 'B')
+        self.mf = {
             ('A', 'B'): .5,
             ('A', 'C'): .7
         }
-        self.fuzzy_set = DiscreteFuzzySet(domain=self.domain, data=self.data)
+        self.fuzzy_set = DiscreteFuzzySet(schema=self.schema, mf=self.mf)
 
     def test_valid_element(self):
         element = ('A', 'B')
@@ -194,21 +194,21 @@ class Test_DiscreteFuzzySet___delitem__(unittest.TestCase):
 class Test_DiscreteFuzzySet___or__(unittest.TestCase):
 
     def setUp(self):
-        self.domain = ('A', 'B')
+        self.schema = ('A', 'B')
         self.data1 = {
             ('V', 'D'): 0.1,
             ('A', 'B'): 0.5,
             ('A', 'C'): 0.3,
             ('F', 'G'): 0.7
         }
-        self.fuzzy_set1 = DiscreteFuzzySet(domain=self.domain, data=self.data1)
+        self.fuzzy_set1 = DiscreteFuzzySet(schema=self.schema, mf=self.data1)
 
     def test_disjoint_sets(self):
         data2 = {
             ('H', 'I'): 0.8,
             ('L', 'M'): 0.6
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 | fuzzy_set2
         expected_data = {
             ('V', 'D'): 0.1,
@@ -227,7 +227,7 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
             ('L', 'M'): 0.6,
             ('P', 'Q'): 0.2
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 | fuzzy_set2
         expected_data = {
             ('V', 'D'): 0.1,
@@ -240,8 +240,8 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
         self.assertEqual(result.to_dictionary(), expected_data)
 
     def test_empty_sets(self):
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
-        empty_set2 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
+        empty_set2 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 | empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
@@ -264,8 +264,8 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
     #         ('F', 'P'): 0.2,
     #         ('Z', 'X'): 0.9
     #     }
-    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-    #     fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
+    #     fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
+    #     fuzzy_set3 = DiscreteFuzzySet(schema=self.schema, mf=data3)
     #     result1 = self.fuzzy_set1 | (fuzzy_set2 | fuzzy_set3)
     #     result2 = (self.fuzzy_set1 | fuzzy_set2) | fuzzy_set3
     #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
@@ -274,7 +274,7 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
         '''
         \x1b[33m Proprietà del dominio vuoto: A ∪ ∅ = A \x1b[0m
         '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 | self.fuzzy_set1
         self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
 
@@ -288,15 +288,15 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
             ('L', 'M'): 0.6,
             ('P', 'Q'): 0.2
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result1 = self.fuzzy_set1 | fuzzy_set2
         result2 = fuzzy_set2 | self.fuzzy_set1
         self.assertEqual(result1, result2)
 
-    def test_different_domain(self):
-        different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
+    def test_different_schema(self):
+        different_schema_fuzzy_set = DiscreteFuzzySet(schema=('X', 'Y'), mf={('X', 'Y'): 0.5})
         with self.assertRaises(AssertionError):
-            self.fuzzy_set1 | different_domain_fuzzy_set
+            self.fuzzy_set1 | different_schema_fuzzy_set
 
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
@@ -305,21 +305,21 @@ class Test_DiscreteFuzzySet___or__(unittest.TestCase):
 class Test_DiscreteFuzzySet___and__(unittest.TestCase):
 
     def setUp(self):
-        self.domain = ('A', 'B')
+        self.schema = ('A', 'B')
         self.data1 = {
             ('V', 'D'): 0.1,
             ('A', 'B'): 0.5,
             ('A', 'C'): 0.3,
             ('F', 'G'): 0.7
         }
-        self.fuzzy_set1 = DiscreteFuzzySet(domain=self.domain, data=self.data1)
+        self.fuzzy_set1 = DiscreteFuzzySet(schema=self.schema, mf=self.data1)
 
     def test_disjoint_sets(self):
         data2 = {
             ('H', 'I'): 0.8,
             ('L', 'M'): 0.6
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 & fuzzy_set2
         self.assertEqual(result.to_dictionary(), {})
 
@@ -330,7 +330,7 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
             ('L', 'M'): 0.6,
             ('P', 'Q'): 0.2
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 & fuzzy_set2
         expected_data = {}
         if FuzzyLogic.and_fun(.4, .7) > .0:
@@ -340,8 +340,8 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
         self.assertEqual(result.to_dictionary(), expected_data)
 
     def test_empty_sets(self):
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
-        empty_set2 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
+        empty_set2 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 & empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
@@ -366,8 +366,8 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
     #         ('Z', 'X'): 0.9,
     #         ('A', 'C'): 0.2
     #     }
-    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-    #     fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
+    #     fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
+    #     fuzzy_set3 = DiscreteFuzzySet(schema=self.schema, mf=data3)
     #     result1 = self.fuzzy_set1 & (fuzzy_set2 & fuzzy_set3)
     #     result2 = (self.fuzzy_set1 & fuzzy_set2) & fuzzy_set3
     #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
@@ -376,7 +376,7 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
         '''
         \x1b[33mProprietà del dominio vuoto: A ∩ ∅ = ∅ \x1b[0m
         '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 & self.fuzzy_set1
         self.assertEqual(result.to_dictionary(), {})
 
@@ -390,15 +390,15 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
             ('L', 'M'): 0.6,
             ('P', 'Q'): 0.2
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result1 = self.fuzzy_set1 & fuzzy_set2
         result2 = fuzzy_set2 & self.fuzzy_set1
         self.assertEqual(result1, result2)
 
-    def test_different_domain(self):
-        different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
+    def test_different_schema(self):
+        different_schema_fuzzy_set = DiscreteFuzzySet(schema=('X', 'Y'), mf={('X', 'Y'): 0.5})
         with self.assertRaises(AssertionError):
-            self.fuzzy_set1 & different_domain_fuzzy_set
+            self.fuzzy_set1 & different_schema_fuzzy_set
 
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
@@ -407,21 +407,21 @@ class Test_DiscreteFuzzySet___and__(unittest.TestCase):
 class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
 
     def setUp(self):
-        self.domain = ('A', 'B')
+        self.schema = ('A', 'B')
         self.data1 = {
             ('V', 'D'): 0.1,
             ('A', 'B'): 0.5,
             ('A', 'C'): 0.3,
             ('F', 'G'): 0.7
         }
-        self.fuzzy_set1 = DiscreteFuzzySet(domain=self.domain, data=self.data1)
+        self.fuzzy_set1 = DiscreteFuzzySet(schema=self.schema, mf=self.data1)
 
     def test_disjoint_sets(self):
         data2 = {
             ('H', 'I'): 0.8,
             ('L', 'M'): 0.6
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 - fuzzy_set2
         self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
 
@@ -432,7 +432,7 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
             ('L', 'M'): 0.6,
             ('P', 'Q'): 0.2
         }
-        fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+        fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
         result = self.fuzzy_set1 - fuzzy_set2
         expected_data = {
             ('V', 'D'): 0.1,
@@ -445,8 +445,8 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
         self.assertEqual(result.to_dictionary(), expected_data)
 
     def test_empty_sets(self):
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
-        empty_set2 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
+        empty_set2 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 - empty_set2
         self.assertEqual(result.to_dictionary(), {})
 
@@ -469,8 +469,8 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
     #         ('F', 'P'): 0.2,
     #         ('Z', 'X'): 0.9
     #     }
-    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
-    #     fuzzy_set3 = DiscreteFuzzySet(domain=self.domain, data=data3)
+    #     fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
+    #     fuzzy_set3 = DiscreteFuzzySet(schema=self.schema, mf=data3)
     #     result1 = self.fuzzy_set1 - (fuzzy_set2 - fuzzy_set3)
     #     result2 = (self.fuzzy_set1 - fuzzy_set2) - fuzzy_set3
     #     self.assertNotEqual(result1.to_dictionary(), result2.to_dictionary())
@@ -485,7 +485,7 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
     #         ('L', 'M'): 0.6,
     #         ('P', 'Q'): 0.2
     #     }
-    #     fuzzy_set2 = DiscreteFuzzySet(domain=self.domain, data=data2)
+    #     fuzzy_set2 = DiscreteFuzzySet(schema=self.schema, mf=data2)
     #     result1 = self.fuzzy_set1 - fuzzy_set2
     #     result2 = fuzzy_set2 - self.fuzzy_set1
     #     self.assertNotEqual(result1, result2)
@@ -494,7 +494,7 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
         '''
         \x1b[33mProprietà del dominio vuoto: ∅ - A = ∅ \x1b[0m
         '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = empty_set1 - self.fuzzy_set1
         self.assertEqual(result.to_dictionary(), {})
     
@@ -502,14 +502,14 @@ class Test_DiscreteFuzzySet___sub__(unittest.TestCase):
         '''
         \x1b[33mProprietà del dominio vuoto: A - ∅ = A \x1b[0m
         '''
-        empty_set1 = DiscreteFuzzySet(domain=self.domain, data={})
+        empty_set1 = DiscreteFuzzySet(schema=self.schema, mf={})
         result = self.fuzzy_set1 - empty_set1
         self.assertEqual(result.to_dictionary(), self.fuzzy_set1.to_dictionary())
 
-    def test_different_domain(self):
-        different_domain_fuzzy_set = DiscreteFuzzySet(domain=('X', 'Y'), data={('X', 'Y'): 0.5})
+    def test_different_schema(self):
+        different_schema_fuzzy_set = DiscreteFuzzySet(schema=('X', 'Y'), mf={('X', 'Y'): 0.5})
         with self.assertRaises(AssertionError):
-            self.fuzzy_set1 - different_domain_fuzzy_set
+            self.fuzzy_set1 - different_schema_fuzzy_set
 
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
@@ -543,13 +543,13 @@ class Test_DiscreteFuzzySet___mul__(unittest.TestCase):
         if FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('f', )]) > .0:
             expected_data[('c', 'd', 'f')] = FuzzyLogic.and_fun(self.set1[('c', 'd')], self.set2[('f', )])
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
+        self.assertEqual(result.get_schema(), ('A', 'B', 'C'))
 
     def test_empty_result(self):
         set4 = DiscreteFuzzySet(('C',))
         result = self.set1 * set4
         self.assertEqual(result.to_dictionary(), {})
-        self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
+        self.assertEqual(result.get_schema(), ('A', 'B', 'C'))
 
     # def test_associativity(self):
     #     '''
@@ -559,15 +559,15 @@ class Test_DiscreteFuzzySet___mul__(unittest.TestCase):
     #         ('q', 'p'): 0.2,
     #         ('t', 'u'): 0.9
     #     }
-    #     set3 = DiscreteFuzzySet(domain=('D', 'E'), data=data3)
+    #     set3 = DiscreteFuzzySet(schema=('D', 'E'), mf=data3)
     #     result1 = self.set1 * (self.set2 * set3)
     #     result2 = (self.set1 * self.set2) * set3
     #     self.assertEqual(result1.to_dictionary(), result2.to_dictionary())
 
-    def test_overlapping_domains(self):
+    def test_overlapping_schemas(self):
         with self.assertRaises(AssertionError) as context:
             self.set1 * self.set3
-        self.assertIn("'A' is in both domains", str(context.exception))
+        self.assertIn("'A' is in both schemas", str(context.exception))
 
 class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
 
@@ -637,7 +637,7 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
             expected_data[('e', 'f', 't', 'v')] = FuzzyLogic.and_fun(.4, .7)
         result = self.set1 @ self.set2
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), ('A', 'B', 'C', 'D'))
+        self.assertEqual(result.get_schema(), ('A', 'B', 'C', 'D'))
     
     def test_partial_overlapping_2(self):
         expected_data = {}
@@ -649,9 +649,9 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
             expected_data[('e', 'f', 'v', 't')] = FuzzyLogic.and_fun(.4, .7)
         result = self.set2 @ self.set1
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), ('A', 'B', 'D', 'C'))
+        self.assertEqual(result.get_schema(), ('A', 'B', 'D', 'C'))
     
-    def test_same_domain(self):
+    def test_same_schema(self):
         expected_data = self.set1 & self.set3
         result = self.set1 @ self.set3
         self.assertEqual(expected_data.to_dictionary(), result.to_dictionary())
@@ -666,7 +666,7 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
         if FuzzyLogic.and_fun(.6, .4) > .0:
             expected_data[('e', 'f', 'v')] = FuzzyLogic.and_fun(.6, .4)
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), ('A', 'B', 'C'))
+        self.assertEqual(result.get_schema(), ('A', 'B', 'C'))
         
     
     def test_inclusion_left(self):
@@ -679,18 +679,18 @@ class Test_DiscreteFuzzySet___matmul__(unittest.TestCase):
         if FuzzyLogic.and_fun(.6, .4) > .0:
             expected_data[('e', 'v', 'f')] = FuzzyLogic.and_fun(.6, .4)
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), ('A', 'C', 'B'))
+        self.assertEqual(result.get_schema(), ('A', 'C', 'B'))
 
-    def test_disjoint_domains(self):
-        fset = DiscreteFuzzySet(domain=('D', 'E', 'F'))
+    def test_disjoint_schemas(self):
+        fset = DiscreteFuzzySet(schema=('D', 'E', 'F'))
         with self.assertRaises(AssertionError):
             self.set1 @ fset
 
 class Test_DiscreteFuzzySet_projection(unittest.TestCase):
     
     def setUp(self):
-        self.domain = ('A', 'B', 'C')
-        self.data = {
+        self.schema = ('A', 'B', 'C')
+        self.mf = {
             ('a1', 'b1', 'c1'): 0.8,
             ('a3', 'b1', 'c1'): 0.2,
             ('a1', 'b2', 'c1'): 0.6,
@@ -699,12 +699,12 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
             ('a3', 'b3', 'c1'): 0.1,
             ('a1', 'b2', 'c2'): 0.5,
         }
-        self.fuzzy_set = DiscreteFuzzySet(self.domain, self.data)
+        self.fuzzy_set = DiscreteFuzzySet(self.schema, self.mf)
 
-    def test_and_projection_valid_subdomain(self):
-        subdomain = ('A', 'C')
+    def test_and_projection_valid_subschema(self):
+        subschema = ('A', 'C')
         operator = FuzzyLogic._FuzzyLogic__and_fun
-        result = self.fuzzy_set.projection(subdomain, operator)
+        result = self.fuzzy_set.projection(subschema, operator)
         expected_data = {}
         if operator(.8, .6) > .0:
             expected_data[('a1', 'c1')] = operator(.8, .6)
@@ -713,12 +713,12 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
         if operator(.3, .5) > .0:
             expected_data[('a1', 'c2')] = operator(.3, .5)
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), subdomain)
+        self.assertEqual(result.get_schema(), subschema)
     
-    def test_or_projection_valid_subdomain(self):
-        subdomain = ('A', 'C')
+    def test_or_projection_valid_subschema(self):
+        subschema = ('A', 'C')
         operator = FuzzyLogic._FuzzyLogic__or_fun
-        result = self.fuzzy_set.projection(subdomain, operator)
+        result = self.fuzzy_set.projection(subschema, operator)
 
         expected_data = {}
         if operator(.8, .6) > .0:
@@ -728,22 +728,22 @@ class Test_DiscreteFuzzySet_projection(unittest.TestCase):
         if operator(.3, .5) > .0:
             expected_data[('a1', 'c2')] = operator(.3, .5)
         self.assertEqual(result.to_dictionary(), expected_data)
-        self.assertEqual(result.get_domain(), subdomain)
+        self.assertEqual(result.get_schema(), subschema)
 
-    def test_invalid_subdomain(self):
-        subdomain = ('A', 'D')
+    def test_invalid_subschema(self):
+        subschema = ('A', 'D')
         with self.assertRaises(AssertionError):
-            self.fuzzy_set.projection(subdomain, FuzzyLogic.and_fun)
+            self.fuzzy_set.projection(subschema, FuzzyLogic.and_fun)
     
-    def test_empty_subdomain(self):
-        subdomain = ()
+    def test_empty_subschema(self):
+        subschema = ()
         with self.assertRaises(AssertionError):
-            self.fuzzy_set.projection(subdomain, FuzzyLogic.and_fun)
+            self.fuzzy_set.projection(subschema, FuzzyLogic.and_fun)
 
     def test_invalid_operator(self):
-        subdomain = ('A', 'C')
+        subschema = ('A', 'C')
         with self.assertRaises(AssertionError):
-            self.fuzzy_set.projection(subdomain, None)
+            self.fuzzy_set.projection(subschema, None)
 
 class Test_DiscreteFuzzySet_particularization(unittest.TestCase):
 
@@ -896,7 +896,7 @@ class Test_DiscreteFuzzySet_compatibility(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.fs1.compatibility('fake')
 
-    def test_different_domains(self):
+    def test_different_schemas(self):
         with self.assertRaises(AssertionError):
             self.fs1.compatibility(DiscreteFuzzySet(('C', ), {}))
 
@@ -943,7 +943,7 @@ class Test_DiscreteFuzzySet_consistency(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.fs1.consistency('fake')
     
-    def test_different_domains(self):
+    def test_different_schemas(self):
         with self.assertRaises(AssertionError):
             self.fs1.consistency(DiscreteFuzzySet(('C', ), {}))
 
@@ -1046,10 +1046,10 @@ class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
             ('a6', 'b6', 'c6', 'h3', 'i3', 'd3', 'e3', 'f3', 'g3', 'q3', 'r3'): .9
         })
     
-    def test_check_domains(self):
-        res1_domain = self.res1.get_domain()
-        self.assertEqual(res1_domain, ('A', 'B', 'C', 'H', 'I', 'D', 'E', 'F', 'G', 'Q', 'R'))
-        self.assertEqual(self.res2.get_domain(), res1_domain)
+    def test_check_schemas(self):
+        res1_schema = self.res1.get_schema()
+        self.assertEqual(res1_schema, ('A', 'B', 'C', 'H', 'I', 'D', 'E', 'F', 'G', 'Q', 'R'))
+        self.assertEqual(self.res2.get_schema(), res1_schema)
     
     def test_disjoint_sets_res1(self):
         self.assertEqual(self.dis_res1.to_dictionary(), {
@@ -1077,8 +1077,8 @@ class Test_DiscreteFuzzySet_cylindrical_extension(unittest.TestCase):
             ('h3', 'a3','i3', 'b3', 'd3', 'c3', 'e3', 'x3', 'y3'): .2
         })
     
-    def test_disjoint_sets_domains(self):
-        self.assertEqual(self.dis_res1.get_domain(), self.dis_res2.get_domain())
+    def test_disjoint_sets_schemas(self):
+        self.assertEqual(self.dis_res1.get_schema(), self.dis_res2.get_schema())
 
     def test_invalid_type(self):
         with self.assertRaises(AssertionError):
@@ -1112,32 +1112,32 @@ class Test_DiscreteFuzzySet_reorder(unittest.TestCase):
             ('i', ): .1,
         })
     
-    def test_single_set_domain(self):
+    def test_single_set_schema(self):
         res = self.set1.reorder(('C', 'A', 'D', 'B'))
         self.assertEqual(res.to_dictionary(), {
             ('c', 'a', 'd', 'b'): .1,
             ('e', 'g', 'h', 'f'): .2,
             ('i', 'm', 'n', 'l'): .3,
         })
-        self.assertEqual(res.get_domain(), ('C', 'A', 'D', 'B'))
+        self.assertEqual(res.get_schema(), ('C', 'A', 'D', 'B'))
     
-    def test_single_set_domain(self):
+    def test_single_set_schema(self):
         res = self.set2.reorder(('C', 'A', 'B'))
         self.assertEqual(res.to_dictionary(), {
             ('c', 'a', 'b'): .3,
             ('e', 'g', 'f'): .2,
             ('i', 'm', 'l'): .1,
         })
-        self.assertEqual(res.get_domain(), ('C', 'A', 'B'))
+        self.assertEqual(res.get_schema(), ('C', 'A', 'B'))
     
-    def test_single_set_domain(self):
+    def test_single_set_schema(self):
         res = self.set3.reorder(('B', 'A'))
         self.assertEqual(res.to_dictionary(), {
             ('b', 'a'): .1,
             ('f', 'e'): .2,
             ('l', 'i'): .3,
         })
-        self.assertEqual(res.get_domain(), ('B', 'A'))
+        self.assertEqual(res.get_schema(), ('B', 'A'))
     
     def test_invalid_perm(self):
         with self.assertRaises(AssertionError):

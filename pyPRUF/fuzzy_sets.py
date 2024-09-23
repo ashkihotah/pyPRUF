@@ -1,6 +1,6 @@
-# from __future__ import annotations
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Union
 
 from pandas import DataFrame
 from pyPRUF.fuzzy_logic import FuzzyBinaryOperator, FuzzyLogic, FuzzyUnaryOperator
@@ -30,23 +30,23 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def __or__(self, set2): # union: |, |=
+    def __or__(self, set2) -> FuzzySet: # union: |, |=
         pass
 
     @abstractmethod
-    def __and__(self, set2): # intersection: &, &=
+    def __and__(self, set2) -> FuzzySet: # intersection: &, &=
         pass
 
     @abstractmethod
-    def __invert__(self): # complement: ~
+    def __invert__(self) -> FuzzySet: # complement: ~
         pass
 
     @abstractmethod
-    def __mul__(self, set2): # cartesian_product: *, *=
+    def __mul__(self, set2) -> FuzzySet: # cartesian_product: *, *=
         pass
 
     @abstractmethod
-    def __matmul__(self, set2): # natural_join: @, @=
+    def __matmul__(self, set2) -> FuzzySet: # natural_join: @, @=
         pass
 
     @abstractmethod
@@ -54,11 +54,11 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def projection(self, subdomain: tuple, operator: FuzzyBinaryOperator):
+    def projection(self, subschema: tuple, operator: FuzzyBinaryOperator) -> FuzzySet:
         pass
 
     @abstractmethod
-    def particularization(self, assignment: dict): # particularization
+    def particularization(self, assignment: dict) -> FuzzySet: # particularization
         pass
 
     @abstractmethod
@@ -70,7 +70,7 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def compatibility(self, reference_set):
+    def compatibility(self, reference_set) -> FuzzySet:
         pass
 
     @abstractmethod
@@ -78,27 +78,27 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod
-    def get_domain(self):
+    def get_schema(self) -> Tuple[str]:
         pass
 
     @abstractmethod
-    def rename_domain(self, ren_dict: dict) -> None: # <<
+    def rename_schema(self, ren_dict: dict) -> None: # <<
         pass
 
     @abstractmethod
-    def select(self, condition: Callable):
+    def select(self, condition: Callable) -> FuzzySet:
         pass
 
     @abstractmethod
-    def apply(self, operator: FuzzyUnaryOperator):
+    def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
         pass
 
     @abstractmethod  
-    def image(self, function: Callable, out_domain: tuple):
+    def image(self, function: Callable, out_schema: tuple) -> FuzzySet:
         pass
 
     @abstractmethod
-    def cylindrical_extension(self, set2):
+    def cylindrical_extension(self, set2) -> Tuple[FuzzySet, FuzzySet]:
         pass
 
 class ContinuousFuzzySet(FuzzySet):
@@ -113,23 +113,23 @@ class ContinuousFuzzySet(FuzzySet):
     (such as Fuzzy Numbers), rather than discrete,
     allowing for smooth transitions between membership values.
 
-    It is defined by a `MembershipFunction` and a domain that
+    It is defined by a `MembershipFunction` and a schema that
     together fully characterize the continous fuzzy set.
     """
 
-    def __init__(self, domain: tuple, mf: MembershipFunction):
-        assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
+    def __init__(self, schema: tuple, mf: MembershipFunction):
+        assert isinstance(schema, tuple) and len(schema) > 0, "'schema' must be a non-empty tuple of strings representing the schemas name!"
         assert isinstance(mf, MembershipFunction), "'mf' must be of type 'MembershipFunction'!"
-        sorted_domain = list(domain)
-        sorted_domain.sort()
-        for i in range(1, len(sorted_domain)):
-            assert domain[i] != domain[i - 1], "'domain' must not contains duplicates!"
+        sorted_schema = list(schema)
+        sorted_schema.sort()
+        for i in range(1, len(sorted_schema)):
+            assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
 
-        self.__domain = list(domain)
-        self.mf = mf
+        self.__schema = list(schema)
+        self.__mf = mf
 
     def __getitem__(self, element) -> float: # membership: []
-        return mf_of_tuple(element, self.mf)
+        return mf_of_tuple(element, self.__mf)
 
     def __setitem__(self, element, membership: float) -> None: # add/update_element: []
         pass
@@ -137,28 +137,28 @@ class ContinuousFuzzySet(FuzzySet):
     def __delitem__(self, element) -> None:
         pass
 
-    def __or__(self, set2): # union: |, |=
+    def __or__(self, set2) -> FuzzySet: # union: |, |=
         pass
 
-    def __and__(self, set2): # intersection: &, &=
+    def __and__(self, set2) -> FuzzySet: # intersection: &, &=
         pass
 
-    def __invert__(self): # complement: ~
+    def __invert__(self) -> FuzzySet: # complement: ~
         pass
 
-    def __mul__(self, set2): # cartesian_product: *, *=
+    def __mul__(self, set2) -> FuzzySet: # cartesian_product: *, *=
         pass
 
-    def __matmul__(self, set2): # natural_join: @, @=
+    def __matmul__(self, set2) -> FuzzySet: # natural_join: @, @=
         pass
 
     def __truediv__(self, set2) -> float: # proportion: /
         pass
 
-    def projection(self, subdomain: tuple, operator: FuzzyBinaryOperator):
+    def projection(self, subschema: tuple, operator: FuzzyBinaryOperator) -> FuzzySet:
         pass
 
-    def particularization(self, assignment: dict): # particularization
+    def particularization(self, assignment: dict) -> FuzzySet: # particularization
         pass
 
     def cardinality(self) -> float:
@@ -167,22 +167,22 @@ class ContinuousFuzzySet(FuzzySet):
     def mean_cardinality(self) -> float:
         pass
 
-    def compatibility(self, reference_set):
+    def compatibility(self, reference_set) -> FuzzySet:
         pass
 
     def consistency(self, reference_set) -> float:
         pass
 
-    def get_domain(self):
-        return tuple(self.__domain)
+    def get_schema(self) -> Tuple[str]:
+        return tuple(self.__schema)
 
-    def rename_domain(self, ren_dict: dict) -> None:
+    def rename_schema(self, ren_dict: dict) -> None:
         assert isinstance(ren_dict, dict), "'ren_dict' must be a dictionary!"
         for key, value in ren_dict.items():
             assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
-            assert key in self.__domain, key + " not in this FuzzySet domain!"
-            assert value not in self.__domain, value + " already in this FuzzySet domain!"
-            self.__domain[self.__domain.index(key)] = value
+            assert key in self.__schema, key + " not in this FuzzySet schema!"
+            assert value not in self.__schema, value + " already in this FuzzySet schema!"
+            self.__schema[self.__schema.index(key)] = value
     
     def select(self, condition: Callable) -> FuzzySet:
         pass
@@ -190,7 +190,7 @@ class ContinuousFuzzySet(FuzzySet):
     def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
         pass
 
-    def image(self, function: Callable, out_domain: tuple):
+    def image(self, function: Callable, out_schema: tuple) -> FuzzySet:
         pass
 
     def cylindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
@@ -201,51 +201,43 @@ class DiscreteFuzzySet(FuzzySet):
     and all the operations that can be performed on it
     by extending the abstract class FuzzySet.
     This implementation makes the following assumptions:\n
-    - A DiscreteFuzzySet is equivalent to a fuzzy version of a
-    relation in the Relational Algebra where the tuples
-    in it belong to the relation with a membership degree
-    .0 <= mu <= .1.\n
-    - A DiscreteFuzzySet is defined by a tuple of strings
-    where each string uniquely identifies a set name
-    and the entire tuple represents the cartesian product
-    of the sets in it that corresponds to the domain of
-    the DiscreteFuzzySet.\n
-    - As proposed by Zadeh, the domain is implicit in the sense
-    that the domain of a fuzzy relation is defined only
-    by the set of the tuples in it.\n
+    - A DiscreteFuzzySet is defined by a membership function
+    that maps each tuple to a membership function in [0, 1]
+    and by a fuzzy relation schema, where each attribute
+    refers to a set in which the DiscreteFuzzySet is defined.\n
     - Only the elements in the support of the fuzzy set
     are kept as tuples of the fuzzy relations.
     """
 
-    def __init__(self, domain: Tuple[str] = None, data = None):
-        """Constructs the DiscreteFuzzySet object with the domain
-        and data given in input. This constructor can initialize
+    def __init__(self, schema: Tuple[str] = None, mf: Union[DataFrame, dict] = None):
+        """Constructs the DiscreteFuzzySet object with the schema
+        and membership function (mf) given in input. This constructor can initialize
         the fuzzy set from either a pandas DataFrame or a dictionary.
 
         Args:
-            domain (tuple): A non-empty tuple of strings without
-                duplicates representing the domain of the
+            schema (tuple): A non-empty tuple of strings without
+                duplicates representing the schema of the
                 `DiscreteFuzzySet`
-            data: Can be `None`, a `dict` or a pandas `DataFrame`
+            mf: Can be `None`, a `dict` or a pandas `DataFrame`
                 representing the tuples in the fuzzy relation. If
-                data is `None`, it will construct an empty fuzzy relation
-                with the domain specified. If data is a `dict`,
+                mf is `None`, it will construct an empty fuzzy relation
+                with the schema specified. If mf is a `dict`,
                 it must have the tuples of the fuzzy relation as keys
                 and their membership as the value of the (key, value)
                 pair. Each key in the dict must be a tuple of the same
-                length as the domain. If data is a `DataFrame`, it must
+                length as the schema. If mf is a `DataFrame`, it must
                 have\n
                 - at least one column and at least one tuple
                 - for each column a string representing the set name
                 - a column named 'mu' containing the membership value of
                 the corresponding tuple. If this column is missing, all
                 tuples are assumed to belong to the fuzzy relation with
-                membership degree 1. All memberships value in data
+                membership degree 1. All memberships value in mf
                 must be floats in the interval (0, 1].
-        If data is a DataFrame, it is not required to also specify the domain
-        parameter. If it is done anyway, it will be ignored and the domain will
-        be inferred from the DataFrame columns names. If data is a tuple
-        of strings or None, it is required to specify also the domain.
+        If mf is a DataFrame, it is not required to also specify the schema
+        parameter. If it is done anyway, it will be ignored and the schema will
+        be inferred from the DataFrame columns names. If mf is a tuple
+        of strings or None, it is required to specify also the schema.
 
         Raises:
             AssertionError: If one of the preceding assumptions is
@@ -255,7 +247,7 @@ class DiscreteFuzzySet(FuzzySet):
             >>> A = DiscreteFuzzySet(('D1', 'D2'), {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9})
             >>> print(A.to_dictionary())
             {(1, 'val2'): 0.3, ('val1', 3.4): 0.6, (2, 'val2'): 0.9}
-            >>> print(A.get_domain())
+            >>> print(A.get_schema())
             ('D1', 'D2')
 
             >>> df = pd.DataFrame({
@@ -263,24 +255,24 @@ class DiscreteFuzzySet(FuzzySet):
             ...     'y': [3, 4],
             ...     'mu': [0.5, 0.7]
             ... })
-            >>> fuzzy_set = FuzzySet(data=df)
-            >>> print(fuzzy_set.get_domain())
+            >>> fuzzy_set = FuzzySet(mf=df)
+            >>> print(fuzzy_set.get_schema())
             ('x', 'y')
             >>> print(fuzzy_set.to_dictionary())
             {(1, 3): 0.5, (2, 4): 0.7}
         """
-        if isinstance(data, DataFrame):
+        if isinstance(mf, DataFrame):
             dict_relation = {}
-            for key, value in data.to_dict().items():
+            for key, value in mf.to_dict().items():
                 assert isinstance(key, str), "All keys in 'dict_relation' must be strings representing the variables name!"
                 dict_relation[key] = tuple(value.values())
             keys = list(dict_relation.keys())
             assert len(keys) > 0, "There must be at least one column!"
-            assert len(keys) != 1 or keys[0] != 'mu', "With the only column named 'mu' the resulting domain is empty!"
+            assert len(keys) != 1 or keys[0] != 'mu', "With the only column named 'mu' the resulting schema is empty!"
             length = len(dict_relation[keys[0]])
             assert length > 0, "The fuzzy set must contain at least a tuple!"
             
-            self.__fuzzy_set = {}
+            self.__mf = {}
             for i in range(0, length):
                 variables = []
                 mu = 1.0
@@ -290,28 +282,28 @@ class DiscreteFuzzySet(FuzzySet):
                     else:
                         mu = dict_relation[key][i]
                         assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All values in 'mu' must be floats between (0, 1]!"
-                self.__fuzzy_set[tuple(variables)] = mu
+                self.__mf[tuple(variables)] = mu
 
             if 'mu' in keys:
                 keys.remove('mu')
-            self.__domain = keys
+            self.__schema = keys
         else:
-            assert isinstance(domain, tuple) and len(domain) > 0, "'domain' must be a non-empty tuple of strings representing the domains name!"
-            length = len(domain)
-            sorted_domain = list(domain)
-            sorted_domain.sort()
-            for i in range(1, len(sorted_domain)):
-                assert domain[i] != domain[i - 1], "'domain' must not contains duplicates!"
+            assert isinstance(schema, tuple) and len(schema) > 0, "'schema' must be a non-empty tuple of strings representing the schemas name!"
+            length = len(schema)
+            sorted_schema = list(schema)
+            sorted_schema.sort()
+            for i in range(1, len(sorted_schema)):
+                assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
 
-            self.__fuzzy_set = {}
-            if data is not None:
-                assert isinstance(data, dict), "'data' must be 'None', a dictionary or a Dataframe!"
-                for element, mu in data.items():
-                    assert isinstance(element, tuple) and len(element) == length, "All keys in 'data' must be tuples with the same length as the domain!"
+            self.__mf = {}
+            if mf is not None:
+                assert isinstance(mf, dict), "'mf' must be 'None', a dictionary or a Dataframe!"
+                for element, mu in mf.items():
+                    assert isinstance(element, tuple) and len(element) == length, "All keys in 'mf' must be tuples with the same length as the schema!"
                     assert isinstance(mu, float) and 0.0 < mu and mu <= 1.0, "All memberships values must be floats between (0, 1]!"
-                    self.__fuzzy_set[element] = mu
+                    self.__mf[element] = mu
 
-            self.__domain = list(domain)
+            self.__schema = list(schema)
     
     def __getitem__(self, element) -> float: # membership: []
         """Retrieves the membership value of an element from the `DiscreteFuzzySet`.
@@ -343,14 +335,14 @@ class DiscreteFuzzySet(FuzzySet):
             For the element `('z',)`, which does not exist in the set, the method returns a membership
             value of 0.0.
         """
-        if element in self.__fuzzy_set.keys():
-            return self.__fuzzy_set[element]
+        if element in self.__mf.keys():
+            return self.__mf[element]
         return .0
     
     def __setitem__(self, element: tuple, membership: float) -> None: # add/update_element: []
         """Adds or updates (the membership value of) an element in the `DiscreteFuzzySet`.
 
-        The `element` must be a tuple with the same length as the domain,
+        The `element` must be a tuple with the same length as the schema,
         and the `membership` must be a float value in the interval (0, 1].
 
         Args:
@@ -362,7 +354,7 @@ class DiscreteFuzzySet(FuzzySet):
         Raises:
             AssertionError: If `membership` is not a float in the
                 interval (0, 1] or if `element` is not a tuple with
-                the same length as the domain of the current fuzzy set.
+                the same length as the schema of the current fuzzy set.
 
         Examples:
             >>> set_a = DiscreteFuzzySet(('a',), {('x',): 0.7})
@@ -378,9 +370,9 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(membership, float), "'membership' must be a float!"
         assert .0 < membership and membership <= 1.0, "'membership' must be in (0, 1] interval!"
         assert isinstance(element, tuple), "'element' must be a tuple! "
-        assert len(self.__domain) == len(element), "'element' must be a tuple of the same length of the domain!"
+        assert len(self.__schema) == len(element), "'element' must be a tuple of the same length of the schema!"
 
-        self.__fuzzy_set[element] = membership
+        self.__mf[element] = membership
 
     def __delitem__(self, element) -> None:
         """Deletes an element from the `DiscreteFuzzySet`.
@@ -401,13 +393,13 @@ class DiscreteFuzzySet(FuzzySet):
             In this example, the element `('x',)` is deleted from `set_a`. After deletion,
             the resulting set only contains the remaining element `('y',)`.
         """
-        if element in self.__fuzzy_set:
-            del self.__fuzzy_set[element]
+        if element in self.__mf:
+            del self.__mf[element]
 
     def __eq__(self, set2: FuzzySet) -> bool:
         """Determines whether two `DiscreteFuzzySet` instances are equal.
 
-        Two `DiscreteFuzzySet` instances are considered equal if they have the same domain
+        Two `DiscreteFuzzySet` instances are considered equal if they have the same schema
         and identical membership values for all elements.
 
         Args:
@@ -437,13 +429,13 @@ class DiscreteFuzzySet(FuzzySet):
             >>> print(result3)
             False
 
-            In this example, `set_a` is equal to `set_b` because they have the same domain and identical
+            In this example, `set_a` is equal to `set_b` because they have the same schema and identical
             membership values for all elements. However, `set_a` is not equal to `set_c` due to differences
             in their membership values while `set_a` is not equal to `set_d` due to to differences in
-            their domains.
+            their schemas.
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        return set2.__fuzzy_set == self.__fuzzy_set and set2.get_domain() == self.get_domain()
+        return set2.__mf == self.__mf and set2.get_schema() == self.get_schema()
 
     def __or__(self, set2: FuzzySet) -> FuzzySet: # union: |, |=
         """Computes the fuzzy union of two `DiscreteFuzzySet` instances.
@@ -458,7 +450,7 @@ class DiscreteFuzzySet(FuzzySet):
         Raises:
             AssertionError: If `set2` is not an instance of
                 `DiscreteFuzzySet` or if `self` and `set2`
-                do not have the same domain.
+                do not have the same schema.
 
         Returns:
             DiscreteFuzzySet: A new `DiscreteFuzzySet` representing the
@@ -478,14 +470,14 @@ class DiscreteFuzzySet(FuzzySet):
             corresponding values in `set_a` and `set_b`.
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        assert self.get_domain() == set2.get_domain(), "'set2' must have the same domain!"
+        assert self.get_schema() == set2.get_schema(), "'set2' must have the same schema!"
 
-        new_set = set2.to_dictionary()
-        for element, membership1 in self.__fuzzy_set.items():
+        new_mf = set2.to_dictionary()
+        for element, membership1 in self.__mf.items():
             new_membership = FuzzyLogic.or_fun(membership1, set2[element])
             if new_membership > .0:
-                new_set[element] = new_membership
-        fs = DiscreteFuzzySet(self.get_domain(), new_set)
+                new_mf[element] = new_membership
+        fs = DiscreteFuzzySet(self.get_schema(), new_mf)
         return fs
     
     def __and__(self, set2: FuzzySet) -> FuzzySet: # intersection: &, &=
@@ -502,7 +494,7 @@ class DiscreteFuzzySet(FuzzySet):
 
         Raises:
             AssertionError: If `set2` is not an instance of `FuzzySet`
-                or if `self` and `set2` do not have the same domain.
+                or if `self` and `set2` do not have the same schema.
 
         Returns:
             DiscreteFuzzySet: A new `DiscreteFuzzySet` representing the
@@ -522,14 +514,14 @@ class DiscreteFuzzySet(FuzzySet):
             corresponding values in `set_a` and `set_b`.
         """
         assert isinstance(set2, FuzzySet), "'set2' must be of type 'FuzzySet'!"
-        assert self.get_domain() == set2.get_domain(), "'set2' must have the same domain!"
+        assert self.get_schema() == set2.get_schema(), "'set2' must have the same schema!"
         
-        new_set = {}
-        for element, membership1 in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership1 in self.__mf.items():
             new_membership = FuzzyLogic.and_fun(membership1, set2[element])
             if new_membership > .0:
-                new_set[element] = new_membership
-        fs = DiscreteFuzzySet(self.get_domain(), new_set)
+                new_mf[element] = new_membership
+        fs = DiscreteFuzzySet(self.get_schema(), new_mf)
         return fs
     
     # ATTENZIONE: non corrisponde nè al complemento assoluto insiemistico nè a quello relativo
@@ -565,10 +557,10 @@ class DiscreteFuzzySet(FuzzySet):
             function of the class `FuzzyLogic`, to each membership value in the set.
             The resulting set contains only the elements with a positive membership value.
         """
-        new_set = {}
-        for element, membership in self.__fuzzy_set.items():
-            new_set[element] = FuzzyLogic.not_fun(membership)
-        fs = DiscreteFuzzySet(self.get_domain(), new_set)
+        new_mf = {}
+        for element, membership in self.__mf.items():
+            new_mf[element] = FuzzyLogic.not_fun(membership)
+        fs = DiscreteFuzzySet(self.get_schema(), new_mf)
         return fs
 
     def __sub__(self, set2: FuzzySet) -> FuzzySet: # differenza: - # corrisponde al complemento relativo insiemistico di set2 rispetto a set1
@@ -587,7 +579,7 @@ class DiscreteFuzzySet(FuzzySet):
         Raises:
             AssertionError: If `set2` is not an instance of
                 `DiscreteFuzzySet` or if `self` and `set2`
-                do not have the same domain.
+                do not have the same schema.
 
         Returns:
             DiscreteFuzzySet: A new `DiscreteFuzzySet` representing the
@@ -606,14 +598,14 @@ class DiscreteFuzzySet(FuzzySet):
             The resulting set contains only the elements with a positive membership value.
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        assert self.get_domain() == set2.get_domain(), "'set2' must have the same domain!"
+        assert self.get_schema() == set2.get_schema(), "'set2' must have the same schema!"
         
-        new_set = {}
-        for element, membership1 in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership1 in self.__mf.items():
             new_membership = FuzzyLogic.and_fun(membership1, FuzzyLogic.not_fun(set2[element]))
             if new_membership > .0:
-                new_set[element] = new_membership
-        fs = DiscreteFuzzySet(self.get_domain(), new_set)
+                new_mf[element] = new_membership
+        fs = DiscreteFuzzySet(self.get_schema(), new_mf)
         return fs
     
     def __mul__(self, set2: FuzzySet) -> FuzzySet: # cartesian_product: *, *=
@@ -631,7 +623,7 @@ class DiscreteFuzzySet(FuzzySet):
         Raises:
             AssertionError: If `set2` is not an instance of
                 `DiscreteFuzzySet` or if `self` and `set2`
-                have overlapping domains.
+                have overlapping schemas.
 
         Returns:
             DiscreteFuzzySet: A new `DiscreteFuzzySet` representing the
@@ -651,28 +643,29 @@ class DiscreteFuzzySet(FuzzySet):
             set as the default `AND` truth function in the class `FuzzyLogic`.
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        set1_domain = self.get_domain()
-        set2_domain = set2.get_domain()
-        for var in set2_domain:
-            assert var not in set1_domain, "'" + var + "' is in both domains: " + str(set1_domain) + "\n'set1' and 'set2' must have different domains!"
+        set1_schema = self.get_schema()
+        set2_schema = set2.get_schema()
+        for var in set2_schema:
+            assert var not in set1_schema, "'" + var + "' is in both schemas: " + str(set1_schema) + "\n'set1' and 'set2' must have different schemas!"
 
-        new_set = {}
-        for element1, membership1 in self.__fuzzy_set.items():
+        new_mf = {}
+        for element1, membership1 in self.__mf.items():
             for element2, membership2 in set2.to_dictionary().items():
                 new_membership = FuzzyLogic.and_fun(membership1, membership2)
                 if new_membership > .0:
-                    new_set[element1 + element2] = new_membership
-        fs = DiscreteFuzzySet(set1_domain + set2_domain, new_set)
+                    new_mf[element1 + element2] = new_membership
+        fs = DiscreteFuzzySet(set1_schema + set2_schema, new_mf)
         return fs
 
     def __matmul__(self, set2: FuzzySet) -> FuzzySet: # natural_join: @, @=
         """Computes the natural join of two `DiscreteFuzzySet` instances.
 
-        The natural join combines elements from the two sets based on common domains,
-        and applies `FuzzyLogic.and_fun()` operation to their membership values.
-        The domain of the resulting fuzzy set is composed by the domain
+        The natural join combines elements from the two sets based on common 
+        attributes of their schemas, and applies `FuzzyLogic.and_fun()`
+        operation to their membership values.
+        The schema of the resulting fuzzy set is composed by the schema
         of the current fuzzy set concatenated with the remaining not in common
-        sets in the domain of 'set2'.
+        attributes in the schema of 'set2'.
 
         >> **WARNING**: only tuples with a membership value greater than 0 are kept.
 
@@ -683,7 +676,8 @@ class DiscreteFuzzySet(FuzzySet):
         Raises:
             AssertionError: If `set2` is not an instance of
                 `DiscreteFuzzySet` or If `self` and `set2`
-                do not have at least one domain in common.
+                do not have at least one attribute in common
+                in their schemas.
 
         Returns:
             DiscreteFuzzySet: A new `DiscreteFuzzySet` representing the
@@ -697,28 +691,28 @@ class DiscreteFuzzySet(FuzzySet):
             {('x', 'y', 'w'): 0.7, ('x', 'z', 'v'): 0.5}
 
             In this example, the natural join of `set_a` and `set_b` is computed by combining elements
-            based on the common domain 'b'. The resulting set contains tuples from the combined domains
+            based on the common attribute 'b'. The resulting set contains tuples from the combined schemas
             ('a', 'b', 'c') with membership values computed using the `FuzzyAnd.MIN`,
             set as the default `AND` truth function in the class `FuzzyLogic`.
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
 
-        domain1 = self.get_domain()
-        domain2 = set2.get_domain()
-        domain2_rem = list(domain2)
+        schema1 = self.get_schema()
+        schema2 = set2.get_schema()
+        schema2_rem = list(schema2)
         indexes_to_check_1 = []
         indexes_to_check_2 = []
-        indexes_to_insert_2 = list(range(0, len(domain2)))
-        for index, var in enumerate(domain1):
-            if var in domain2:
+        indexes_to_insert_2 = list(range(0, len(schema2)))
+        for index, var in enumerate(schema1):
+            if var in schema2:
                 indexes_to_check_1.append(index)
-                indexes_to_check_2.append(domain2.index(var))
-                indexes_to_insert_2.remove(domain2.index(var))
-                domain2_rem.remove(var)
-        assert len(indexes_to_check_1) > 0, "'set1' and 'set2' must have at least one set in common in their domain!"
+                indexes_to_check_2.append(schema2.index(var))
+                indexes_to_insert_2.remove(schema2.index(var))
+                schema2_rem.remove(var)
+        assert len(indexes_to_check_1) > 0, "'set1' and 'set2' must have at least one set in common in their schema!"
 
-        new_set = {}
-        for element1, membership1 in self.__fuzzy_set.items():
+        new_mf = {}
+        for element1, membership1 in self.__mf.items():
             for element2, membership2 in set2.to_dictionary().items():
                 to_insert = True
                 for index in range(0, len(indexes_to_check_1)):
@@ -731,8 +725,8 @@ class DiscreteFuzzySet(FuzzySet):
                         new_elem.append(element2[index])
                     new_membership = FuzzyLogic.and_fun(membership1, membership2)
                     if new_membership > .0:
-                        new_set[tuple(new_elem)] = new_membership
-        return DiscreteFuzzySet(domain1 + tuple(domain2_rem), new_set)
+                        new_mf[tuple(new_elem)] = new_membership
+        return DiscreteFuzzySet(schema1 + tuple(schema2_rem), new_mf)
 
     # NON TESTATO : Banale
     def __truediv__(self, set2) -> float: # proportion: /
@@ -768,77 +762,77 @@ class DiscreteFuzzySet(FuzzySet):
         new_set = self & set2
         return new_set.cardinality() / set2.cardinality()
 
-    def projection(self, subdomain: Tuple[str], operator: FuzzyBinaryOperator) -> FuzzySet:
-        """Projects the fuzzy set onto a specified subdomain using a binary operator.
+    def projection(self, subschema: Tuple[str], operator: FuzzyBinaryOperator) -> FuzzySet:
+        """Projects the fuzzy set onto a specified subschema using a binary operator.
 
-        This method creates a new fuzzy set by projecting the current set onto a given subdomain. The
+        This method creates a new fuzzy set by projecting the current set onto a given subschema. The
         projection involves combining membership values according to the provided binary operator. Only the
-        elements in the new subdomain are retained, and membership values are computed using the operator
+        elements in the new subschema are retained, and membership values are computed using the operator
         applied to the corresponding elements from the original fuzzy set.
 
         >> **WARNING**: only tuples with a membership value greater than 0 are kept.
 
         Args:
-            subdomain (Tuple[str]): A tuple representing the subdomain
+            subschema (Tuple[str]): A tuple representing the subschema
                 to project onto. It must be a non-empty subset of the
-                domain of the current fuzzy set.
+                schema of the current fuzzy set.
             operator (FuzzyBinaryOperator): A binary operator used to
                 combine membership values during the projection.
 
         Raises:
-            AssertionError: If `subdomain` is not a non-empty tuple or
-                if any variable in `subdomain` is not in the domain of
+            AssertionError: If `subschema` is not a non-empty tuple or
+                if any variable in `subschema` is not in the schema of
                 the fuzzy set, or if `operator` is not of type
                 `FuzzyBinaryOperator`.
 
         Returns:
             FuzzySet: A new `DiscreteFuzzySet` object representing the
                 projection of the original fuzzy set onto the specified
-                subdomain.
+                subschema.
 
         Examples:
             >>> original_set = DiscreteFuzzySet(('x', 'y', 'z'), {('a', 'b', 'c'): 0.7, ('a', 'b', 'f'): 0.5, ('a', 'f', 'c'): 0.3})
-            >>> subdomain = ('x', 'y')
-            >>> projected_set = original_set.projection(subdomain, FuzzyAnd.MIN)
+            >>> subschema = ('x', 'y')
+            >>> projected_set = original_set.projection(subschema, FuzzyAnd.MIN)
             >>> print(projected_set.to_dictionary())
             {('a', 'b'): 0.5, ('a', 'f'): .0.3}
         """
-        assert isinstance(subdomain, tuple) and len(subdomain) > 0, "'subdomain' must be a non empty sub-tuple of sets from the domain of the fuzzy set!"
+        assert isinstance(subschema, tuple) and len(subschema) > 0, "'subschema' must be a non empty sub-tuple of sets from the schema of the fuzzy set!"
         assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
 
-        domain = self.get_domain()
+        schema = self.get_schema()
         indexes = set()
-        for var in subdomain:
-            assert var in domain, "'" + str(var) + "' not in the domain of the fuzzy set!"
-            indexes.add(domain.index(var))
+        for var in subschema:
+            assert var in schema, "'" + str(var) + "' not in the schema of the fuzzy set!"
+            indexes.add(schema.index(var))
 
-        new_set = {}
+        new_mf = {}
         to_remove = set()
-        for element, membership in self.__fuzzy_set.items():
+        for element, membership in self.__mf.items():
             new_tuple = []
             for index in indexes:
                 new_tuple.append(element[index])
 
             new_tuple = tuple(new_tuple)
-            if new_tuple in new_set.keys():
-                new_set[new_tuple] = operator(new_set[new_tuple], membership)
+            if new_tuple in new_mf.keys():
+                new_mf[new_tuple] = operator(new_mf[new_tuple], membership)
             else:
-                new_set[new_tuple] = membership
+                new_mf[new_tuple] = membership
 
-            if new_set[new_tuple] == .0:
+            if new_mf[new_tuple] == .0:
                 to_remove.add(new_tuple)
 
         for t in to_remove:
-            del new_set[t]
+            del new_mf[t]
 
-        fs = DiscreteFuzzySet(subdomain, new_set)
+        fs = DiscreteFuzzySet(subschema, new_mf)
         return fs
     
     def particularization(self, assignment: dict) -> FuzzySet:
         """Performs particularization of the fuzzy set based on a given assignment.
 
         This method creates a new fuzzy set by specializing the current set according to the provided
-        assignment. The assignment is a dictionary where each key is a set in the domain, and each
+        assignment. The assignment is a dictionary where each key is an attribute of the schema, and each
         value specifies a particular value or a fuzzy set. The resulting fuzzy set includes only the elements
         that match the specified assignments. If a variable in the assignment maps to a specific value,
         only elements with that value are retained. If it maps to another fuzzy set, the membership values
@@ -847,14 +841,14 @@ class DiscreteFuzzySet(FuzzySet):
         >> **WARNING**: only tuples with a membership value greater than 0 are kept.
 
         Args:
-            assignment (dict): A dictionary where each key is a variable
-                from the domain of the fuzzy set, and each value is
+            assignment (dict): A dictionary where each key is an attribute
+                from the schema of the fuzzy set, and each value is
                 either a specific value or a `DiscreteFuzzySet` to match
                 against.
 
         Raises:
             AssertionError: If `assignment` is not a dictionary, if any
-                key is not in the fuzzy set's domain, or if the
+                key is not in the fuzzy set's schema, or if the
                 assignment values do not match the expected types.
 
         Returns:
@@ -862,8 +856,8 @@ class DiscreteFuzzySet(FuzzySet):
                 the particularized fuzzy set.
 
         Examples:
-            >>> domain = ('x', 'y')
-            >>> fuzzy_set = DiscreteFuzzySet(domain, {('a', 'b'): 0.5, ('c', 'd'): 0.7})
+            >>> schema = ('x', 'y')
+            >>> fuzzy_set = DiscreteFuzzySet(schema, {('a', 'b'): 0.5, ('c', 'd'): 0.7})
             >>> assignment = {'x': 'a', 'y': DiscreteFuzzySet(('y',), {('b',): 0.3})}
             >>> particularized_set = fuzzy_set.particularization(assignment)
             >>> print(particularized_set.to_dictionary())
@@ -871,29 +865,29 @@ class DiscreteFuzzySet(FuzzySet):
         """
         assert isinstance(assignment, dict), "'assignment' must be a dictionary!"
 
-        domain = self.get_domain()
+        schema = self.get_schema()
         indexes = []
         fs_indexes = []
         for var in assignment.keys():
-            assert var in domain, "'" + str(var) + "' not in the domain of the fuzzy set!"
-            index = domain.index(var)
-            if isinstance(assignment[domain[index]], FuzzySet):
+            assert var in schema, "'" + str(var) + "' not in the schema of the fuzzy set!"
+            index = schema.index(var)
+            if isinstance(assignment[schema[index]], FuzzySet):
                 fs_indexes.append(index)
             else:
                 indexes.append(index)
 
-        new_set = {}
-        for element, membership in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership in self.__mf.items():
             for index in indexes:
-                if element[index] != assignment[domain[index]]:
+                if element[index] != assignment[schema[index]]:
                     membership = .0
                     break
             for index in fs_indexes:
-                membership = FuzzyLogic.and_fun(assignment[domain[index]][(element[index],)], membership)
+                membership = FuzzyLogic.and_fun(assignment[schema[index]][(element[index],)], membership)
             if membership > .0:
-                new_set[element] = membership
+                new_mf[element] = membership
 
-        fs = DiscreteFuzzySet(domain, new_set)
+        fs = DiscreteFuzzySet(schema, new_mf)
         return fs
 
     def cardinality(self) -> float:
@@ -913,7 +907,7 @@ class DiscreteFuzzySet(FuzzySet):
             1.0
         """
         memberships_sum = 0.0
-        for value in self.__fuzzy_set.values():
+        for value in self.__mf.values():
             memberships_sum += value
         return memberships_sum
     
@@ -935,7 +929,7 @@ class DiscreteFuzzySet(FuzzySet):
         """
         memberships_sum = 0.0
         n = 0
-        for value in self.__fuzzy_set.values():
+        for value in self.__mf.values():
             memberships_sum += value
             n += 1
         if n:
@@ -949,17 +943,17 @@ class DiscreteFuzzySet(FuzzySet):
         This method calculates a new fuzzy set based on the membership values of `set2`,
         with each membership value in the new set representing the maximum compatibility
         with the corresponding membership value in the current set.
-        Both fuzzy sets must have the same domain for the operation to be valid.
+        Both fuzzy sets must have the same schema for the operation to be valid.
 
         >> **WARNING**: only tuples with a membership value greater than 0 are kept.
 
         Args:
             set2 (FuzzySet): Another fuzzy set to compare with.
-                It must have the same domain as the current fuzzy set.
+                It must have the same schema as the current fuzzy set.
 
         Raises:
             AssertionError: If `set2` is not of type `DiscreteFuzzySet`
-                or if the domains of the two fuzzy sets do not match.
+                or if the schemas of the two fuzzy sets do not match.
 
         Returns:
             FuzzySet: A new `DiscreteFuzzySet` object where each element
@@ -974,34 +968,34 @@ class DiscreteFuzzySet(FuzzySet):
             {(0.5, ): 0.6, (0.2, ): 0.8}
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'!"
-        assert self.get_domain() == set2.get_domain(), "'set2' must have the same domain!"
+        assert self.get_schema() == set2.get_schema(), "'set2' must have the same schema!"
 
-        new_set = {}
+        new_mf = {}
         for element, membership in set2.to_dictionary().items():
             key = (membership, )
-            if key in new_set.keys():
-                new_set[key] = max(self[element], new_set[key])
+            if key in new_mf.keys():
+                new_mf[key] = max(self[element], new_mf[key])
             elif self[element] > .0:
-                new_set[key] = self[element]
+                new_mf[key] = self[element]
         
-        return DiscreteFuzzySet(('membership', ), new_set)
+        return DiscreteFuzzySet(('membership', ), new_mf)
 
     def consistency(self, reference_set: FuzzySet) -> float:
         """Computes the consistency level between the fuzzy set and a reference fuzzy set.
 
         This method calculates the consistency of the current fuzzy set with a provided reference set.
         Consistency is defined as the maximum of the fuzzy AND operation applied to the membership
-        values of corresponding elements in both sets. The two fuzzy sets must have the same domain
+        values of corresponding elements in both sets. The two fuzzy sets must have the same schema
         for this operation to be valid.
 
         Args:
             reference_set (FuzzySet): A reference fuzzy set to compare
-                with. It must have the same domain as the current fuzzy
+                with. It must have the same schema as the current fuzzy
                 set.
 
         Raises:
             AssertionError: If `reference_set` is not of type
-                `DiscreteFuzzySet` or if the domains of the two fuzzy
+                `DiscreteFuzzySet` or if the schemas of the two fuzzy
                 sets do not match.
 
         Returns:
@@ -1016,7 +1010,7 @@ class DiscreteFuzzySet(FuzzySet):
             0.6
         """
         assert isinstance(reference_set, DiscreteFuzzySet), "'reference_set' must be of type 'DiscreteFuzzySet'!"
-        assert self.get_domain() == reference_set.get_domain(), "'reference_set' must have the same domain!"
+        assert self.get_schema() == reference_set.get_schema(), "'reference_set' must have the same schema!"
 
         consistency = .0
         for element, mu1 in reference_set.to_dictionary().items():
@@ -1024,57 +1018,57 @@ class DiscreteFuzzySet(FuzzySet):
 
         return consistency
 
-    def get_domain(self) -> Tuple[str]: # NON TESTATO : Banale
-        """Retrieves the domain of the fuzzy set.
+    def get_schema(self) -> Tuple[str]: # NON TESTATO : Banale
+        """Retrieves the schema of the fuzzy set.
 
-        This method returns the domain of the fuzzy set as a tuple of strings. The domain consists
-        of the set names that define the fuzzy set.
+        This method returns the schema of the fuzzy set as a tuple of strings. The schema consists
+        of the attribute names, which are associated with the sets that define the fuzzy set.
 
         Returns:
-            (Tuple[str]): A tuple representing the domain of the fuzzy set.
+            (Tuple[str]): A tuple representing the schema of the fuzzy set.
 
         Examples:
             >>> fuzzy_set = DiscreteFuzzySet(('x', 'y', 'z'), {('a', 'b', 'c'): 0.5})
-            >>> domain = fuzzy_set.get_domain()
-            >>> print(domain)
+            >>> schema = fuzzy_set.get_schema()
+            >>> print(schema)
             ('x', 'y', 'z').
         """
-        return tuple(self.__domain)
+        return tuple(self.__schema)
 
-    def rename_domain(self, ren_dict: dict) -> None: # NON TESTATO : Banale
-        """Renames elements in the domain of the fuzzy set based on a provided dictionary.
+    def rename_schema(self, ren_dict: dict) -> None: # NON TESTATO : Banale
+        """Renames elements in the schema of the fuzzy set based on a provided dictionary.
 
-        This method updates the domain of the fuzzy set by renaming its elements according to the
-        mappings provided in `ren_dict`. Each key in `ren_dict` corresponds to an existing element
-        in the domain, and the associated value is the new name for that element. The method performs
-        in-place modification of the domain.
+        This method updates the schema of the fuzzy set by renaming its attributes according to the
+        mappings provided in `ren_dict`. Each key in `ren_dict` corresponds to an existing attribute
+        in the schema, and the associated value is the new name for that attribute. The method performs
+        in-place modification of the schema.
 
         Args:
             ren_dict (dict): A dictionary where each key is an existing
-                element in the domain and each value is the new name for
-                that element.
+                attribute in the schema and each value is the new name for
+                that attribute.
 
         Raises:
             AssertionError: If `ren_dict` is not a dictionary, if any
                 key or value in `ren_dict` is not a string, if any key
-                is not found in the current domain, or if any value
-                already exists in the current domain.
+                is not found in the current schema, or if any value
+                already exists in the current schema.
 
         Examples:
-            >>> original_domain = ('x', 'y', 'z')
+            >>> original_schema = ('x', 'y', 'z')
             >>> renaming_dict = {'x': 'a', 'y': 'b'}
-            >>> fuzzy_set = DiscreteFuzzySet(original_domain, {('x_val', 'y_val', 'z_val'): 0.7})
-            >>> fuzzy_set.rename_domain(renaming_dict)
-            >>> domain = fuzzy_set.get_domain()
-            >>> print(domain)
+            >>> fuzzy_set = DiscreteFuzzySet(original_schema, {('x_val', 'y_val', 'z_val'): 0.7})
+            >>> fuzzy_set.rename_schema(renaming_dict)
+            >>> schema = fuzzy_set.get_schema()
+            >>> print(schema)
             ('a', 'b', 'z')
         """
         assert isinstance(ren_dict, dict), "'ren_dict' must be a dictionary!"
         for key, value in ren_dict.items():
             assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
-            assert key in self.__domain, "'" + key + "' not in this FuzzySet domain!"
-            assert value not in self.__domain, "'" + value + "' already in this FuzzySet domain!"
-            self.__domain[self.__domain.index(key)] = value
+            assert key in self.__schema, "'" + key + "' not in this FuzzySet schema!"
+            assert value not in self.__schema, "'" + value + "' already in this FuzzySet schema!"
+            self.__schema[self.__schema.index(key)] = value
 
     def select(self, condition: Callable) -> FuzzySet: # NON TESTATO : Banale
         """Selects elements from the fuzzy set based on a condition.
@@ -1105,11 +1099,11 @@ class DiscreteFuzzySet(FuzzySet):
             {('c', 'd'): 0.8}
         """
         assert isinstance(condition, Callable), "'function' must be a callable function!"
-        new_set = {}
-        for element, membership in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership in self.__mf.items():
             if condition(tuple(list(element) + [membership])):
-                new_set[element] = membership
-        return DiscreteFuzzySet(self.get_domain(), new_set)
+                new_mf[element] = membership
+        return DiscreteFuzzySet(self.get_schema(), new_mf)
     
     def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
         """Applies a fuzzy unary operator to all membership values in the fuzzy set.
@@ -1140,25 +1134,25 @@ class DiscreteFuzzySet(FuzzySet):
             {('a', 'b'): 0.25, ('c', 'd'): 0.64}
         """
         assert isinstance(operator, FuzzyUnaryOperator), "'operator' must be of type 'FuzzyUnaryOperator'!"
-        new_set = {}
-        for element, membership in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership in self.__mf.items():
             new_membership = operator(membership)
             if new_membership > .0:
-                new_set[element] = new_membership
-        return DiscreteFuzzySet(self.get_domain(), new_set)
+                new_mf[element] = new_membership
+        return DiscreteFuzzySet(self.get_schema(), new_mf)
 
-    def image(self, function: Callable, out_domain: tuple) -> FuzzySet: # NON TESTATO
+    def image(self, function: Callable, out_schema: tuple) -> FuzzySet: # NON TESTATO
         """Computes the image of the fuzzy set under a given function.
 
         This method applies a specified function to each element in the fuzzy set, mapping it to a new
-        domain (`out_domain`). The resulting fuzzy set consists of the function's output as the new
+        schema (`out_schema`). The resulting fuzzy set consists of the function's output as the new
         elements and their associated membership values. If multiple elements map to the same output,
         their membership values are combined using the fuzzy OR operation.
 
         Args:
             function (Callable): A callable function that maps
-            out_domain (tuple): The domain of the resulting fuzzy
-                elements from the original domain to the output domain.
+            out_schema (tuple): The schema of the resulting fuzzy
+                elements from the original schema to the output schema.
                 set after applying the function.
 
         Raises:
@@ -1178,33 +1172,33 @@ class DiscreteFuzzySet(FuzzySet):
             ...         return ('d', )
 
             >>> original_set = DiscreteFuzzySet(('x', 'y'), {('a', 'b'): 0.5, ('c', 'd'): 0.8, ('e', 'f'): 0.4})
-            >>> out_domain = ('z',)
-            >>> image_set = original_set.image(example_function, out_domain)
+            >>> out_schema = ('z',)
+            >>> image_set = original_set.image(example_function, out_schema)
             >>> print(image_set.to_dictionary())
             {('c', ): 0.8, ('d', ): 0.4}
-            >>> print(image_set.get_domain())
+            >>> print(image_set.get_schema())
             ('z',)
         """
         assert isinstance(function, Callable), "'function' must be a callable function!"
-        new_set = {}
-        for element, membership in self.__fuzzy_set.items():
+        new_mf = {}
+        for element, membership in self.__mf.items():
             y = function(element)
-            if y in new_set:
-                new_set[y] = FuzzyLogic.or_fun(new_set[y], membership)
+            if y in new_mf:
+                new_mf[y] = FuzzyLogic.or_fun(new_mf[y], membership)
             else:
-                new_set[y] = membership
-        return DiscreteFuzzySet(out_domain, new_set)
+                new_mf[y] = membership
+        return DiscreteFuzzySet(out_schema, new_mf)
     
     def cylindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
-        """Computes the cylindrical extension of two fuzzy sets over a combined domain.
+        """Computes the cylindrical extension of two fuzzy sets over a combined schema.
 
-        This method extends the current fuzzy set and `set2` to a common domain
-        that includes all variables from both sets. The resulting sets have the same domain, with
-        membership values adjusted according to the cylindrical extension. The new domain is created by
-        merging the domains of the two sets:\n
-        - First the common sets are added in the same order as their appear in the `self` domain
-        - Second the unique sets of the `self` domain are concatenated in the same order as their appear in it
-        - Third the unique sets of the `set2` domain are concatenated in the same order as their appear in it
+        This method extends the current fuzzy set and `set2` to a common schema
+        that includes all attributes from both schemas. The resulting sets have the same schema, with
+        membership values adjusted according to the cylindrical extension. The new schema is created by
+        merging the attributes of the two schemas:\n
+        - First the common attributes are added in the same order as their appear in the `self` schema
+        - Second the unique attributes of the `self` schema are concatenated in the same order as their appear in it
+        - Third the unique attributes of the `set2` schema are concatenated in the same order as their appear in it
 
         Args:
             set2 (DiscreteFuzzySet): Another fuzzy set to be extended.
@@ -1225,9 +1219,9 @@ class DiscreteFuzzySet(FuzzySet):
             >>> set1 = DiscreteFuzzySet(('x', 'y'), {('a', 'b'): 0.5, ('c', 'd'): 0.4})
             >>> set2 = DiscreteFuzzySet(('y', 'z'), {('e', 'f'): 0.7, ('g', 'h'): 0.3})
             >>> extended_set1, extended_set2 = set1.cylindrical_extension(set2)
-            >>> print(extended_set1.get_domain())
+            >>> print(extended_set1.get_schema())
             ('y', 'x', 'z')
-            >>> print(extended_set2.get_domain())
+            >>> print(extended_set2.get_schema())
             ('y', 'x', 'z')
             >>> print(extended_set1.to_dictionary())
             {('b', 'a', 'f'): 0.5, ('b', 'a', 'h'): 0.5, ('d', 'c', 'f'): 0.4, ('d', 'c', 'h'): 0.4}
@@ -1235,32 +1229,32 @@ class DiscreteFuzzySet(FuzzySet):
             {('e', 'a', 'f'): 0.7, ('e', 'c', 'f'): 0.7, ('g', 'a', 'h'): 0.3, ('g', 'c', 'h'): 0.3}
         """
         assert isinstance(set2, DiscreteFuzzySet), "'set2' must be of type 'DiscreteFuzzySet'"
-        domain1 = self.get_domain()
-        domain2 = set2.get_domain()
-        to_insert_1 = list(range(len(domain1)))
-        to_insert_2 = list(range(len(domain2)))
+        schema1 = self.get_schema()
+        schema2 = set2.get_schema()
+        to_insert_1 = list(range(len(schema1)))
+        to_insert_2 = list(range(len(schema2)))
         common1 = []
         common2 = []
-        for index, var in enumerate(domain1):
-            if var in domain2:
+        for index, var in enumerate(schema1):
+            if var in schema2:
                 common1.append(index)
                 to_insert_1.remove(index)
-                index2 = domain2.index(var)
+                index2 = schema2.index(var)
                 to_insert_2.remove(index2)
                 common2.append(index2)
         
-        new_domain = []
+        new_schema = []
         for index in common1:
-            new_domain.append(domain1[index])
+            new_schema.append(schema1[index])
         for index in to_insert_1:
-            new_domain.append(domain1[index])
+            new_schema.append(schema1[index])
         for index in to_insert_2:
-            new_domain.append(domain2[index])
-        new_domain = tuple(new_domain)
+            new_schema.append(schema2[index])
+        new_schema = tuple(new_schema)
 
-        set1_extension = {}
-        set2_extension = {}
-        for element1, membership1 in self.__fuzzy_set.items():
+        mf1_ext = {}
+        mf2_ext = {}
+        for element1, membership1 in self.__mf.items():
             for element2, membership2 in set2.to_dictionary().items():
 
                 new_elem = []
@@ -1270,7 +1264,7 @@ class DiscreteFuzzySet(FuzzySet):
                     new_elem.append(element1[index])
                 for index in to_insert_2:
                     new_elem.append(element2[index])
-                set1_extension[tuple(new_elem)] = membership1
+                mf1_ext[tuple(new_elem)] = membership1
 
                 new_elem = []
                 for index in common2:
@@ -1279,9 +1273,9 @@ class DiscreteFuzzySet(FuzzySet):
                     new_elem.append(element1[index])
                 for index in to_insert_2:
                     new_elem.append(element2[index])
-                set2_extension[tuple(new_elem)] = membership2
+                mf2_ext[tuple(new_elem)] = membership2
 
-        return DiscreteFuzzySet(new_domain, set1_extension), DiscreteFuzzySet(new_domain, set2_extension)
+        return DiscreteFuzzySet(new_schema, mf1_ext), DiscreteFuzzySet(new_schema, mf2_ext)
 
     def collapse(self, operator: FuzzyBinaryOperator) -> float: # differentia # NON TESTATO : Banale
         """Collapses the fuzzy set into a single membership value using a specified binary operator.
@@ -1305,65 +1299,65 @@ class DiscreteFuzzySet(FuzzySet):
 
         Examples:
             >>> operator = FuzzyAnd.MIN  # Example operator: minimum of two values
-            >>> fuzzy_set = DiscreteFuzzySet(domain, {('a', 'b'): 0.4, ('c', 'd'): 0.6})
+            >>> fuzzy_set = DiscreteFuzzySet(schema, {('a', 'b'): 0.4, ('c', 'd'): 0.6})
             >>> collapsed_value = fuzzy_set.collapse(operator)
             >>> print(collapsed_value)
             0.4
         """
         assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
-        assert len(self.__fuzzy_set.keys()) > 1, "The fuzzy set must have at least two elements!"
-        memberships = list(self.__fuzzy_set.values())
+        assert len(self.__mf.keys()) > 1, "The fuzzy set must have at least two elements!"
+        memberships = list(self.__mf.values())
         result = memberships[0]
         for membership in memberships[1:]:
             result = operator(result, membership)
         return result
     
-    def reorder(self, new_domain: tuple) -> FuzzySet:
-        """Reorders the elements of the fuzzy set according to a new domain permutation.
+    def reorder(self, new_schema: tuple) -> FuzzySet:
+        """Reorders the elements of the fuzzy set according to a new schema permutation.
 
-        This method takes a new domain represented by a tuple, which should be a permutation of the current domain,
-        and reorders the elements of the fuzzy set to match the order of the variables in the new domain.
-        The method returns a new `FuzzySet` object with the updated domain and reordered elements.
+        This method takes a new schema represented by a tuple, which should be a permutation of the current schema,
+        and reorders the elements of the fuzzy set to match the order of the attributes in the new schema.
+        The method returns a new `FuzzySet` object with the updated schema and reordered elements.
 
         Args:
-            new_domain (tuple): A tuple representing a permutation of
-                the original domain. The length of `new_domain` must be
-                the same as the original domain.
+            new_schema (tuple): A tuple representing a permutation of
+                the original schema. The length of `new_schema` must be
+                the same as the original schema.
 
         Raises:
-            AssertionError: If `new_domain` is not a tuple, if its
-                length differs from the original domain, or if any
-                element in `new_domain` is not present in the original
-                domain.
+            AssertionError: If `new_schema` is not a tuple, if its
+                length differs from the original schema, or if any
+                element in `new_schema` is not present in the original
+                schema.
 
         Returns:
-            FuzzySet: A new `FuzzySet` object with the reordered domain
+            FuzzySet: A new `FuzzySet` object with the reordered schema
                 and elements.
 
         Examples:
-            >>> original_domain = ('x', 'y', 'z')
-            >>> new_domain = ('z', 'x', 'y')
-            >>> fuzzy_set = DiscreteFuzzySet(original_domain, {('a', 'b', 'c'): 0.5, ('d', 'e', 'f'): 0.2})
-            >>> reordered_set = fuzzy_set.reorder(new_domain)
+            >>> original_schema = ('x', 'y', 'z')
+            >>> new_schema = ('z', 'x', 'y')
+            >>> fuzzy_set = DiscreteFuzzySet(original_schema, {('a', 'b', 'c'): 0.5, ('d', 'e', 'f'): 0.2})
+            >>> reordered_set = fuzzy_set.reorder(new_schema)
             >>> print(reordered_set.to_dictionary())
             {('c', 'a', 'b'): 0.5, ('f', 'd', 'e'): 0.2}
         """
-        assert isinstance(new_domain, tuple), "'tuple' must be a tuple representing a permutation of the domain!"
-        assert len(new_domain) == len(self.__domain), "'tuple' must be of the same length as the original domain!"
+        assert isinstance(new_schema, tuple), "'tuple' must be a tuple representing a permutation of the schema!"
+        assert len(new_schema) == len(self.__schema), "'tuple' must be of the same length as the original schema!"
         perm = []
-        for var in new_domain:
-            assert var in self.__domain, "'" + str(var) + "' not in the domain!"
-            index = self.__domain.index(var)
+        for var in new_schema:
+            assert var in self.__schema, "'" + str(var) + "' not in the schema!"
+            index = self.__schema.index(var)
             perm.append(index)
         
         new_dict = {}
-        for key, value in self.__fuzzy_set.items():
+        for key, value in self.__mf.items():
             new_elem = []
             for i in perm:
                 new_elem.append(key[i])
             new_dict[tuple(new_elem)] = value
 
-        return DiscreteFuzzySet(new_domain, new_dict)
+        return DiscreteFuzzySet(new_schema, new_dict)
 
     def to_dictionary(self) -> dict: # differentia
         """Returns a dictionary where in the (key, value) pair
@@ -1373,7 +1367,7 @@ class DiscreteFuzzySet(FuzzySet):
         Returns:
             dict: A dictionary representing the fuzzy relation.
         """
-        return self.__fuzzy_set.copy()
+        return self.__mf.copy()
     
     def elements(self) -> set: # differentia
         """Returns the set of all tuples in this fuzzy relation.
@@ -1381,7 +1375,7 @@ class DiscreteFuzzySet(FuzzySet):
         Returns:
             set: The set of all tuples in this fuzzy relation.
         """
-        return set(self.__fuzzy_set.keys())
+        return set(self.__mf.keys())
 
     def memberships(self) -> set: # differentia
         """Returns the set of all memberships in this fuzzy relation.
@@ -1389,7 +1383,7 @@ class DiscreteFuzzySet(FuzzySet):
         Returns:
             set: The set of all memberships in this fuzzy relation.
         """
-        return set(self.__fuzzy_set.values())
+        return set(self.__mf.values())
     
     def items(self) -> set: # differentia
         """Returns the set of all (tuple, memberships) pairs
@@ -1399,7 +1393,7 @@ class DiscreteFuzzySet(FuzzySet):
             set: The set of all (tuple, memberships) pairs
                 in this fuzzy relation.
         """
-        return set(self.__fuzzy_set.items())
+        return set(self.__mf.items())
     
     def tab_str(self) -> str: # differentia
         """Returns the tabular format string of this
@@ -1410,10 +1404,10 @@ class DiscreteFuzzySet(FuzzySet):
                 fuzzy relation.
         """
         s = ''
-        for key in self.__domain:
+        for key in self.__schema:
             s += "{:<15}".format(key)
         s += 'mu\n\n'
-        for key, value in self.__fuzzy_set.items():
+        for key, value in self.__mf.items():
             for var in key:
                 s += "{:<15}".format(var)
             s += "{:<15}\n".format(value)
@@ -1428,10 +1422,10 @@ class DiscreteFuzzySet(FuzzySet):
                 representation of this fuzzy set.
         """
         s = ''
-        for value, membership in self.__fuzzy_set.items():
+        for value, membership in self.__mf.items():
             if membership > .0:
                 s += str(membership) + '/' + str(value) + ' + '
-        if len(self.__fuzzy_set.items()) > 0:
+        if len(self.__mf.items()) > 0:
             return s[:-3]
         return '∅'
     
