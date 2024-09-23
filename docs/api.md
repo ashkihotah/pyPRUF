@@ -1,5 +1,5 @@
 # API
 
 ::: pyPRUF.fuzzy_logic
-::: pyPRUF.fuzzy_set
+::: pyPRUF.fuzzy_sets
 ::: pyPRUF.membership_functions
