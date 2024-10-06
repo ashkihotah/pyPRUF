@@ -779,7 +779,7 @@ class Test_DiscreteFuzzySet_particularization(unittest.TestCase):
             self.data_fs.particularization({'A': 3, 'fake': 2})
     
     def test_valid_assignment(self):
-        result = self.data_fs.particularization({'A': 'a1', 'B': self.fs_ass1, 'C': self.fs_ass2, 'D': 'd1'})
+        result = self.data_fs.particularization({'A': 'a1', ('B', ): self.fs_ass1, ('C', ): self.fs_ass2, 'D': 'd1'})
         expected_data = {}
         if FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4) > .0:
             expected_data[('a1', 'b1', 'c1', 'd1')] = FuzzyLogic.and_fun(FuzzyLogic.and_fun(.8, .7), .4)

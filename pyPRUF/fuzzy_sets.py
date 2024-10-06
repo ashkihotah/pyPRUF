@@ -94,7 +94,7 @@ class FuzzySet(ABC):
         pass
 
     @abstractmethod  
-    def image(self, function: Callable, out_schema: tuple) -> FuzzySet:
+    def extension_principle(self, function: Callable, out_schema: tuple) -> FuzzySet:
         pass
 
     @abstractmethod
@@ -190,7 +190,7 @@ class ContinuousFuzzySet(FuzzySet):
     def apply(self, operator: FuzzyUnaryOperator) -> FuzzySet:
         pass
 
-    def image(self, function: Callable, out_schema: tuple) -> FuzzySet:
+    def extension_principle(self, function: Callable, out_schema: tuple) -> FuzzySet:
         pass
 
     def cylindrical_extension(self, set2: FuzzySet) -> Tuple[FuzzySet, FuzzySet]:
@@ -293,6 +293,7 @@ class DiscreteFuzzySet(FuzzySet):
             sorted_schema = list(schema)
             sorted_schema.sort()
             for i in range(1, len(sorted_schema)):
+                assert schema[i] != 'mu', "'mu' cannot be a valid attribute name in the schema!"
                 assert schema[i] != schema[i - 1], "'schema' must not contains duplicates!"
 
             self.__mf = {}
@@ -800,10 +801,15 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(subschema, tuple) and len(subschema) > 0, "'subschema' must be a non empty sub-tuple of sets from the schema of the fuzzy set!"
         assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
 
+        if subschema == ('mu', ):
+            data = set(self.__mf.values())
+            df = DataFrame(data=data, columns=['memberships'])
+            return DiscreteFuzzySet(mf=df)
+
         schema = self.get_schema()
         indexes = set()
         for var in subschema:
-            assert var in schema, "'" + str(var) + "' not in the schema of the fuzzy set!"
+            assert var in schema or var == 'mu', "'" + str(var) + "' not in the schema of the fuzzy set!"
             indexes.add(schema.index(var))
 
         new_mf = {}
@@ -866,24 +872,35 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(assignment, dict), "'assignment' must be a dictionary!"
 
         schema = self.get_schema()
-        indexes = []
+        fs_assignments = []
+        val_indexes = []
         fs_indexes = []
-        for var in assignment.keys():
-            assert var in schema, "'" + str(var) + "' not in the schema of the fuzzy set!"
-            index = schema.index(var)
-            if isinstance(assignment[schema[index]], FuzzySet):
-                fs_indexes.append(index)
+        for key in assignment:
+            # assert isinstance(attr_tuple, tuple), "All keys in 'assignment' must be tuples of attributes in the schema!"
+            if isinstance(key, tuple):
+                indexes = []
+                for attr in key:
+                    assert attr in schema, "'" + str(attr) + "' not in the schema of the fuzzy set!"
+                    indexes.append(schema.index(attr))
+                assert isinstance(assignment[key], FuzzySet), "If a key in 'assignment' is a tuple, its value must be a FuzzySet!"
+                fs_indexes.append(indexes)
+                fs_assignments.append(key)
             else:
-                indexes.append(index)
+                assert key in schema, "'" + str(key) + "' not in the schema of the fuzzy set!"
+                assert not isinstance(assignment[key], FuzzySet), "If a key in 'assignment' is an attribute name, the value must not be a FuzzySet!"
+                val_indexes.append(schema.index(key))
 
         new_mf = {}
         for element, membership in self.__mf.items():
-            for index in indexes:
+            for index in val_indexes:
                 if element[index] != assignment[schema[index]]:
                     membership = .0
                     break
-            for index in fs_indexes:
-                membership = FuzzyLogic.and_fun(assignment[schema[index]][(element[index],)], membership)
+            for i in range(len(fs_assignments)):
+                subtuple = ()
+                for index in fs_indexes[i]:
+                    subtuple += (element[index], )
+                membership = FuzzyLogic.and_fun(assignment[fs_assignments[i]][subtuple], membership)
             if membership > .0:
                 new_mf[element] = membership
 
@@ -1066,6 +1083,7 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(ren_dict, dict), "'ren_dict' must be a dictionary!"
         for key, value in ren_dict.items():
             assert isinstance(key, str) and isinstance(key, str), "All keys and values in 'ren_dict' must be strings!"
+            assert key != 'mu', "'mu' cannot be a valid attribute name in the schema!"
             assert key in self.__schema, "'" + key + "' not in this FuzzySet schema!"
             assert value not in self.__schema, "'" + value + "' already in this FuzzySet schema!"
             self.__schema[self.__schema.index(key)] = value
@@ -1141,8 +1159,8 @@ class DiscreteFuzzySet(FuzzySet):
                 new_mf[element] = new_membership
         return DiscreteFuzzySet(self.get_schema(), new_mf)
 
-    def image(self, function: Callable, out_schema: tuple) -> FuzzySet: # NON TESTATO
-        """Computes the image of the fuzzy set under a given function.
+    def extension_principle(self, function: Callable, out_schema: tuple) -> FuzzySet: # NON TESTATO
+        """Computes the fuzzy extension of the function defined on the tuples of this fuzzy set.
 
         This method applies a specified function to each element in the fuzzy set, mapping it to a new
         schema (`out_schema`). The resulting fuzzy set consists of the function's output as the new
@@ -1160,7 +1178,7 @@ class DiscreteFuzzySet(FuzzySet):
 
         Returns:
             FuzzySet: A new 'DiscreteFuzzySet' object representing
-                the image of the original fuzzy set under the given function.
+                the fuzzy extension of the original given function.
 
         Examples:
             >>> def example_function(element):
@@ -1173,10 +1191,10 @@ class DiscreteFuzzySet(FuzzySet):
 
             >>> original_set = DiscreteFuzzySet(('x', 'y'), {('a', 'b'): 0.5, ('c', 'd'): 0.8, ('e', 'f'): 0.4})
             >>> out_schema = ('z',)
-            >>> image_set = original_set.image(example_function, out_schema)
-            >>> print(image_set.to_dictionary())
+            >>> fuzzy_fun = original_set.extension_principle(example_function, out_schema)
+            >>> print(fuzzy_fun.to_dictionary())
             {('c', ): 0.8, ('d', ): 0.4}
-            >>> print(image_set.get_schema())
+            >>> print(fuzzy_fun.get_schema())
             ('z',)
         """
         assert isinstance(function, Callable), "'function' must be a callable function!"
@@ -1307,9 +1325,12 @@ class DiscreteFuzzySet(FuzzySet):
         assert isinstance(operator, FuzzyBinaryOperator), "'operator' must be of type 'FuzzyBinaryOperator'!"
         assert len(self.__mf.keys()) > 1, "The fuzzy set must have at least two elements!"
         memberships = list(self.__mf.values())
-        result = memberships[0]
-        for membership in memberships[1:]:
-            result = operator(result, membership)
+        if len(memberships) > 0:
+            result = memberships[0]
+            for membership in memberships[1:]:
+                result = operator(result, membership)
+        else:
+            result = .0
         return result
     
     def reorder(self, new_schema: tuple) -> FuzzySet:
@@ -1359,6 +1380,20 @@ class DiscreteFuzzySet(FuzzySet):
 
         return DiscreteFuzzySet(new_schema, new_dict)
 
+    def probability(self, prob: Callable) -> float:
+        p = .0
+        for element, mu in self.__mf.items():
+            p += mu * prob(element)
+        return p
+    
+    def truth(self, truth: Callable) -> FuzzySet:
+        new_mf = {}
+        for element, mu in self.__mf.items():
+            new_mu = truth(self.__mf[element])
+            if new_mu > .0:
+                new_mf[element] = new_mu
+        return DiscreteFuzzySet(self.get_schema(), new_mf)
+
     def to_dictionary(self) -> dict: # differentia
         """Returns a dictionary where in the (key, value) pair
         the key represents the element in the fuzzy relation
@@ -1403,14 +1438,53 @@ class DiscreteFuzzySet(FuzzySet):
             str: The tabular format string of this
                 fuzzy relation.
         """
+        max_rows = 10
+        count = 0
         s = ''
-        for key in self.__schema:
-            s += "{:<15}".format(key)
-        s += 'mu\n\n'
+        table = []
+        padding = 4
+        header = self.__schema + ['mu']
+
         for key, value in self.__mf.items():
-            for var in key:
-                s += "{:<15}".format(var)
-            s += "{:<15}\n".format(value)
+            if count < max_rows:
+                table.append(key + (round(value, 2), ))
+                count += 1
+            else:
+                break
+
+        col_widths = [max(len(str(item)) for item in col) + padding for col in zip(header, *table)]
+
+        s = "".join(f"{header:<{col_widths[i]}}" for i, header in enumerate(header)) + "\n"
+        for row in table:
+            s += "".join(f"{str(cell):<{col_widths[i]}}" for i, cell in enumerate(row)) + "\n"
+        if count >= max_rows:
+            s += 'Output truncated: n. of rows = ' + str(len(self.__mf))
+        return s
+
+    def comparison_str(self, set2: DiscreteFuzzySet) -> str:
+        max_rows = 10
+        count = 0
+        s = ''
+        table = []
+        padding = 4
+        header = self.__schema + ['mu', '-> new_mu']
+
+        for key, value in self.__mf.items():
+            set2_value = set2[key]
+            if count < max_rows:
+                if self.__mf[key] != set2_value:
+                    table.append(key + (str(round(value, 2)), '-> ' + str(round(set2_value, 2)), ))            
+                    count += 1
+            else:
+                break
+
+        col_widths = [max(len(str(item)) for item in col) + padding for col in zip(header, *table)]
+
+        s = "".join(f"{header:<{col_widths[i]}}" for i, header in enumerate(header)) + "\n"
+        for row in table:
+            s += "".join(f"{str(cell):<{col_widths[i]}}" for i, cell in enumerate(row)) + "\n"
+        if count >= max_rows:
+            s += 'Output truncated: n. of rows = ' + str(len(self.__mf))
         return s
 
     def __repr__(self) -> str: # differentia

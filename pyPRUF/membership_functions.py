@@ -131,9 +131,9 @@ class Trapezoidal(MembershipFunction):
         assert isinstance(x, float), "'x' must be a float!"
         if self.__a <= x and x < self.__b: # IMPORTANTE: il minore stretto a x < self.__b evita che quando a = b = -Inf ci sia divisione per 0
             return (x - self.__a) / (self.__b - self.__a)
-        elif self.__b <= x and x < self.__c:
+        elif self.__b <= x and x <= self.__c:
             return 1.0
-        elif self.__c <= x and x < self.__d: # IMPORTANTE: il minore stretto a self.__c < x evita che quando c = d = Inf ci sia divisione per 0
+        elif self.__c < x and x < self.__d: # IMPORTANTE: il minore stretto a self.__c < x evita che quando c = d = Inf ci sia divisione per 0
             return (self.__d - x) / (self.__d - self.__c)
         return 0.0
 
