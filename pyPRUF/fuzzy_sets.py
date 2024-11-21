@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from math import ceil
 from typing import Callable, Tuple, Union
 
 from pandas import DataFrame
@@ -1430,7 +1431,7 @@ class DiscreteFuzzySet(FuzzySet):
         """
         return set(self.__mf.items())
     
-    def tab_str(self) -> str: # differentia
+    def tab_str(self, n_cols = 1, max_rows=10, padding=4) -> str: # differentia
         """Returns the tabular format string of this
         fuzzy relation.
 
@@ -1438,28 +1439,78 @@ class DiscreteFuzzySet(FuzzySet):
             str: The tabular format string of this
                 fuzzy relation.
         """
-        max_rows = 10
+        max_rows = min(len(self.__mf), max_rows)
+        assert n_cols <= ceil(len(self.__mf) / max_rows), "'n_cols' exceeds the minimum number of columns necessary to describe this fuzzy set!"
         count = 0
         s = ''
-        table = []
-        padding = 4
-        header = self.__schema + ['mu']
+        table = [()] * max_rows
+        header = []
+        cols = len(self.__schema) + 1
+        for c in range(n_cols):
+            header += self.__schema + ['mu']
 
+        is_truncated = False
         for key, value in self.__mf.items():
-            if count < max_rows:
-                table.append(key + (round(value, 2), ))
+            if count < max_rows * n_cols:
+                table[count % max_rows] += key + (round(value, 2), )
                 count += 1
             else:
+                is_truncated = True
                 break
-
+        
+        while count < max_rows * n_cols:
+            table[count % max_rows] += ('/',) * cols
+            count += 1
+        
         col_widths = [max(len(str(item)) for item in col) + padding for col in zip(header, *table)]
 
-        s = "".join(f"{header:<{col_widths[i]}}" for i, header in enumerate(header)) + "\n"
+        s = "".join(f"{attr:<{col_widths[i]}}" for i, attr in enumerate(header)) + "\n"
         for row in table:
             s += "".join(f"{str(cell):<{col_widths[i]}}" for i, cell in enumerate(row)) + "\n"
-        if count >= max_rows:
+        if is_truncated:
             s += 'Output truncated: n. of rows = ' + str(len(self.__mf))
         return s
+
+    # def comparison_str(self, set2, n_cols = 1, max_rows=10, padding=4) -> str: # differentia
+    #     """Returns the tabular format string of this
+    #     fuzzy relation.
+
+    #     Returns:
+    #         str: The tabular format string of this
+    #             fuzzy relation.
+    #     """
+    #     max_rows = min(len(self.__mf), max_rows)
+    #     assert n_cols <= ceil(len(self.__mf) / max_rows), "'n_cols' exceeds the minimum number of columns necessary to describe this fuzzy set!"
+    #     count = 0
+    #     s = ''
+    #     table = [()] * max_rows
+    #     header = []
+    #     cols = len(self.__schema) + 2
+    #     for c in range(n_cols):
+    #         header += self.__schema + ['mu', '-> new_mu']
+
+    #     is_truncated = False
+    #     for key, value in self.__mf.items():
+    #         if count < max_rows * n_cols:
+    #             set2_value = set2[key]
+    #             table[count % max_rows] += key + (round(value, 2), '-> ' + str(round(set2_value, 2)))
+    #             count += 1
+    #         else:
+    #             is_truncated = True
+    #             break
+        
+    #     while count < max_rows * n_cols:
+    #         table[count % max_rows] += ('/',) * cols
+    #         count += 1
+        
+    #     col_widths = [max(len(str(item)) for item in col) + padding for col in zip(header, *table)]
+
+    #     s = "".join(f"{attr:<{col_widths[i]}}" for i, attr in enumerate(header)) + "\n"
+    #     for row in table:
+    #         s += "".join(f"{str(cell):<{col_widths[i]}}" for i, cell in enumerate(row)) + "\n"
+    #     if is_truncated:
+    #         s += 'Output truncated: n. of rows = ' + str(len(self.__mf))
+    #     return s
 
     def comparison_str(self, set2: DiscreteFuzzySet) -> str:
         max_rows = 10
