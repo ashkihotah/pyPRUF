@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pyPRUF',
-    version='0.1.0',
+    version='0.0.1',
     python_requires=">=3.11",   
     description='A Python library for PRUF, a meaning representation and manipulation language for approximate reasoning purposes, proposed by Zadeh.',
     url='https://github.com/ashkihotah/pyPRUF',
