@@ -1,8 +1,8 @@
 # pyPRUF: Possibilistic Relational Universal Fuzzy
 
-![Read the Docs](https://img.shields.io/readthedocs/ashkihotah-pypruf?link=https%3A%2F%2Fashkihotah-pypruf.readthedocs.io%2Fen%2Flatest%2F)
+![Read the Docs (version)](https://img.shields.io/readthedocs/pypruf/latest)
 ![GitHub Release](https://img.shields.io/github/v/release/ashkihotah/pyPRUF)
-![GitHub License](https://img.shields.io/github/license/ashkihotah/pyPRUF?link=https%3A%2F%2Fgithub.com%2Fashkihotah%2FpyPRUF%2Ftree%2Fdev%3Ftab%3DLicense-1-ov-file)
+![GitHub License](https://img.shields.io/github/license/ashkihotah/pyPRUF)
 
 
 **pyPRUF** is a simple Python library implementation of the **PRUF** (**Possibilistic Relational Universal Fuzzy**) framework proposed by Lotfi A. Zadeh.
@@ -15,7 +15,7 @@ At the moment, this library provides facilities that manage only discrete fuzzy 
 
 > *At present, pyPRUF is still in its intial stages of development. This library could be improved in many ways and, time to time, it will be done!*😊
 
-It is recommended to have or obtain a solid foundation of knowledge in fuzzy logic and fuzzy set theory before reading the [docs](https://ashkihotah-pypruf.readthedocs.io/en/latest/).
+It is recommended to have or obtain a solid foundation of knowledge in fuzzy logic and fuzzy set theory before reading the [docs](https://pypruf.readthedocs.io/en/latest/).
 
 ## Key Features
 

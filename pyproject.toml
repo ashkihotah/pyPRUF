@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools >= 61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyPRUF"
+description = "A Python library for PRUF, a meaning representation and manipulation language for approximate reasoning purposes, proposed by Zadeh."
+version = "0.0.3"
+dependencies = [
+  "pandas"
+]
+requires-python = ">=3.11"
+authors = [
+  {name = "Nicolò Resta"},
+  {email = "nicoloresta02@gmail.com"}
+]
+readme = "README.md"
+keywords = ["AI", "XAI", "PRUF", "fuzzy relations", "fuzzy logic", "fuzzy sets", "possibilistic logic", "approximate reasoning", "fuzzy relational algebra"]
+
+[metadata]
+license="LGPL-3.0-or-later"
+license-files=["LICENSE.txt"]
+
+[project.urls]
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/ashkihotah/pyPRUF"
