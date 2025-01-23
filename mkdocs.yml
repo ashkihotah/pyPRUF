@@ -1,0 +1,36 @@
+site_name: pyPRUF
+repo_url: https://github.com/ashkihotah/pyPRUF
+site_author: Nicolò Resta
+theme:
+  name: readthedocs
+  # highlightjs: true
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            # docstring_style: "google"
+            # sort: source
+            show_source: true
+            show_root_heading: true
+            separate_members: true
+
+nav:
+  - Welcome to pyPRUF: index.md
+  - Getting Started:
+    - Fuzzy Logic: fuzzy_logic.md
+    - Discrete Fuzzy Sets: fuzzy_rel_alg.md
+    - Continuous Fuzzy Sets: cont_fuzzy_sets.md
+    - Translation Rules: translation_rules.md
+  - API: api.md
+  - About: about.md
