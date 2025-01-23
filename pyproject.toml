@@ -22,5 +22,5 @@ license="LGPL-3.0-or-later"
 license-files=["LICENSE.txt"]
 
 [project.urls]
-Documentation = "https://readthedocs.org"
+Documentation = "https://pypruf.readthedocs.io/en/latest/"
 Repository = "https://github.com/ashkihotah/pyPRUF"
